@@ -1,6 +1,12 @@
-fn main() {
+use std::error::Error;
+
+fn main() -> Result<(), Box<dyn Error>> {
     println!("Hello, world!");
 
-    let game_meta = api::create_game();
-    let _ = api::get_game_state(game_meta.game_id());
+    let game_api = api::new_api();
+
+    let game_meta = game_api.create_game()?;
+    let _ = game_api.get_game_state(game_meta.game_id())?;
+
+    Ok(())
 }

@@ -74,6 +74,19 @@ pub enum GameError {
     NotFound,
 }
 
+// I think this usage of lifetimes is "safe" and won't be complicated later. Let's find out!
+pub struct Play<'a> {
+    game_id: &'a str,
+    player_id: &'a str,
+    card: Card,
+    target: CardTarget,
+}
+
+pub enum CardTarget {
+    Player,
+    Neutral,
+}
+
 impl Error for GameError {/* Unneeded */}
 
 impl Display for GameError {
