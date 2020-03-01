@@ -1,51 +1,34 @@
-use std::collections::HashMap;
+// TODO remove these once I get into the thick of things.
+#![allow(dead_code)]
+#![allow(unused_variables)]
 
-pub struct GameState {
-    game_board: GameBoard,
-    p1_hand: [Card; 8],
-    // TODO will probably need some player_id to pass in on each request
+use crate::types::{GameMetadata, GameState, Card, GameError};
+
+pub mod types;
+
+/// Create game, return game ID
+pub fn create_game() -> GameMetadata {
+    GameMetadata::new(
+        "g-id".to_owned(),
+        "p1p1".to_owned(),
+        "p2p2p2".to_owned(),
+    )
 }
 
-pub struct GameBoard {
-    p1_plays: HashMap<CardColor, Vec<CardValue>>,
-    p2_plays: HashMap<CardColor, Vec<CardValue>>,
-    p1_score: i32,
-    p2_score: i32,
-    neutral_draw_pile: HashMap<CardColor, (CardValue, u8)>,
-    draw_pile_cards_remaining: u8,
+/// Note to future self: something like this could exist.
+pub fn describe_game(game_id: &str) -> GameMetadata {
+    GameMetadata::new(
+        game_id.to_owned(),
+        "p1p1".to_owned(),
+        "p2p2p2".to_owned(),
+    )
 }
 
-pub struct Card {
-    card_color: CardColor,
-    card_value: CardValue,
-}
-
-pub enum CardColor {
-    Red,
-    Green,
-    White,
-    Blue,
-    Yellow,
-}
-
-pub enum CardValue {
-    Wager,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    Ten,
-}
-
-pub fn get_game_state() -> GameState {
+pub fn get_game_state(game_id: &str) -> GameState {
     panic!("Not implemented");
 }
 
-pub fn play_card() {
+pub fn play_card(game_id: &str, player_id: &str, card: Card) -> Result<(), GameError> {
     panic!("Not implemented");
 }
 
