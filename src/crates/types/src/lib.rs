@@ -86,6 +86,7 @@ pub enum CardTarget {
     Neutral,
 }
 
+#[derive(Debug)]
 pub enum GameError {
     Internal,
     NotFound,
@@ -94,15 +95,6 @@ pub enum GameError {
 impl Error for GameError {}
 
 impl Display for GameError {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
-        match self {
-            GameError::NotFound => f.write_str("Something not found!"),
-            GameError::Internal => f.write_str("Unexpected error."),
-        }
-    }
-}
-
-impl Debug for GameError {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
             GameError::NotFound => f.write_str("Something not found!"),

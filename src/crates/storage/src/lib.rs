@@ -29,11 +29,11 @@ pub mod local_storage;
 pub trait GameStore {
 
     // C
-    fn create_game_metadata(&self, game_metadata: StorageGameMetadata) -> Result<(), StorageError>;
-    fn create_game_state(&self, storage_game_state: StorageGameState) -> Result<(), StorageError>;
+    fn create_game_metadata(&mut self, game_metadata: StorageGameMetadata) -> Result<(), StorageError>;
+    fn create_game_state(&mut self, storage_game_state: StorageGameState) -> Result<(), StorageError>;
 
     // U
-    fn update_game_state(&self, storage_game_state: StorageGameState) -> Result<(), StorageError>;
+    fn update_game_state(&mut self, storage_game_state: StorageGameState) -> Result<(), StorageError>;
 
     // R
     fn load_game_metadata(&self, game_id: &str) -> Result<StorageGameMetadata, StorageError>;
@@ -43,6 +43,7 @@ pub trait GameStore {
     // none yet
 }
 
+#[derive(Clone, PartialEq, Debug)]
 pub struct StorageGameMetadata {
     game_id: String,
     p1_id: String,
@@ -73,14 +74,16 @@ impl StorageGameMetadata {
     }
 }
 
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum GameStatus {
-    Hosted,
-    InProgress,
+    Hosted, // Created by host, waiting for guest
+    InProgress, // guest joined, game begins
     Completed,
 }
 
 pub struct StorageGameState {
-    metadata: StorageGameMetadata,
+    // Maybe metadata should be in here instead? leaving it out for now. Idk.
+    game_id: String,
 
     p1_hand: [Card; 8],
     p2_hand: [Card; 8],
@@ -94,6 +97,7 @@ pub struct StorageGameState {
     p1_turn: bool,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum StorageError {
     // Client fault
     NotFound,
@@ -106,16 +110,6 @@ pub enum StorageError {
 impl Error for StorageError {}
 
 impl Display for StorageError {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
-        match self {
-            StorageError::NotFound => f.write_str("Something not found!"),
-            StorageError::Internal => f.write_str("Unexpected error."),
-            StorageError::AlreadyExists => f.write_str("Already exists STOP"),
-        }
-    }
-}
-
-impl Debug for StorageError {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
             StorageError::NotFound => f.write_str("Something not found!"),
