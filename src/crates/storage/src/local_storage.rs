@@ -9,7 +9,7 @@ pub struct LocalStore {
 }
 
 impl LocalStore {
-    fn new() -> Self {
+    pub fn new() -> Self {
         LocalStore {
             metadata_map: HashMap::new(),
             state_map: HashMap::new(),

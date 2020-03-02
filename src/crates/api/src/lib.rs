@@ -11,9 +11,9 @@ mod handler;
 pub trait GameApi {
 
     /// TODO awesome doc
-    fn create_game(&self) -> Result<GameMetadata, GameError>;
+    fn create_game(&mut self) -> Result<GameMetadata, GameError>;
 
-    /// TODO awesome doc
+    /// Note to future self: something like this could exist. Maybe it's not needed? idk
     fn describe_game(&self, game_id: &str) -> Result<GameMetadata, GameError>;
 
     /// TODO awesome doc
@@ -26,7 +26,7 @@ pub trait GameApi {
 // Does this mean every call from main to API will incur the cost of a v-lookup table query?
 // Consider removing this interface. See https://stackoverflow.com/a/27570064.
 pub fn new_game_api() -> Box<dyn GameApi> {
-    Box::new(GameApiHandler)
+    Box::new(GameApiHandler::new())
 }
 
 #[cfg(test)]
