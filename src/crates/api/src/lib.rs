@@ -2,10 +2,9 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use crate::types::{GameError, GameMetadata, GameState, Play};
+use types::{GameError, GameMetadata, GameState, Play};
 use crate::handler::GameApiHandler;
 
-pub mod types;
 mod handler;
 
 /// Maybe this is a little too OOP? this is a learning experiment.

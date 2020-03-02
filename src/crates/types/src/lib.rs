@@ -1,3 +1,7 @@
+// TODO remove these once I get into the thick of things.
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::error::Error;
@@ -69,11 +73,6 @@ pub enum CardValue {
     Ten,
 }
 
-pub enum GameError {
-    Internal,
-    NotFound,
-}
-
 // I think this usage of lifetimes is "safe" and won't be complicated later. Let's find out!
 pub struct Play<'a> {
     game_id: &'a str,
@@ -87,7 +86,12 @@ pub enum CardTarget {
     Neutral,
 }
 
-impl Error for GameError {/* Unneeded */}
+pub enum GameError {
+    Internal,
+    NotFound,
+}
+
+impl Error for GameError {}
 
 impl Display for GameError {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
@@ -104,5 +108,13 @@ impl Debug for GameError {
             GameError::NotFound => f.write_str("Something not found!"),
             GameError::Internal => f.write_str("Unexpected error."),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
     }
 }

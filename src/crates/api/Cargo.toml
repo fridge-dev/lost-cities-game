@@ -7,3 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# Local repo dependencies
+storage = { path = "../storage" }
+types = { path = "../types" }
+
+# External dependencies

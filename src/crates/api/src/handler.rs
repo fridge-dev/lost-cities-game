@@ -1,5 +1,5 @@
 use crate::GameApi;
-use crate::types::{GameMetadata, GameError, GameState, Play};
+use types::{GameMetadata, GameError, GameState, Play};
 
 pub struct GameApiHandler;
 
