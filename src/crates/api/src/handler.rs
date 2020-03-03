@@ -17,12 +17,11 @@ impl GameApiHandler {
 
 impl GameApi for GameApiHandler {
 
-    fn create_game(&mut self) -> Result<GameMetadata, GameError> {
-        let game_metadata = create_game();
+    fn host_game(&mut self, p1_id: &str) -> Result<String, GameError> {
+        let game_id = create_game_id();
         let storage_result = self.storage.create_game_metadata(StorageGameMetadata::new(
-            game_metadata.game_id().to_owned(),
-            game_metadata.p1_id().to_owned(),
-            game_metadata.p2_id().to_owned(),
+            game_id.clone(),
+            p1_id.to_owned(),
             GameStatus::Hosted,
         ));
 
@@ -30,14 +29,19 @@ impl GameApi for GameApiHandler {
         // This entire match could hypothetically be replaced with:
         // `storage_result.map(|_| Ok(game_metadata))?`
         match storage_result {
-            Ok(_) => Ok(game_metadata),
+            Ok(_) => Ok(game_id),
             Err(e) => Err(match e {
                 StorageError::Internal => GameError::Internal,
                 // These two below are outside the control of the caller, and shouldn't be possible.
                 StorageError::AlreadyExists => GameError::Internal,
                 StorageError::NotFound => GameError::Internal,
+                StorageError::IllegalModification => GameError::Internal,
             })
         }
+    }
+
+    fn join_game(&mut self, game_id: &str, p2_id: &str) -> Result<(), GameError> {
+        unimplemented!()
     }
 
     fn describe_game(&self, game_id: &str) -> Result<GameMetadata, GameError> {
@@ -53,11 +57,6 @@ impl GameApi for GameApiHandler {
     }
 }
 
-/// Create game, return game ID
-fn create_game() -> GameMetadata {
-    GameMetadata::new(
-        "g-id".to_owned(),
-        "p1p1".to_owned(),
-        "p2p2p2".to_owned(),
-    )
+fn create_game_id() -> String {
+    "g-id".to_owned()
 }

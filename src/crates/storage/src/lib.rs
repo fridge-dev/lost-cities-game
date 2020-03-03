@@ -47,30 +47,44 @@ pub trait GameStore {
 pub struct StorageGameMetadata {
     game_id: String,
     p1_id: String,
-    p2_id: String,
+    p2_id: Option<String>,
     game_status: GameStatus,
 }
 
 impl StorageGameMetadata {
-    pub fn new(game_id: String, p1_id: String, p2_id: String, game_status: GameStatus) -> Self {
+    pub fn new(game_id: String, p1_id: String, game_status: GameStatus) -> Self {
         StorageGameMetadata {
             game_id,
             p1_id,
-            p2_id,
+            p2_id: None,
             game_status,
         }
     }
+
     pub fn game_id(&self) -> &str {
         &self.game_id
     }
+
     pub fn p1_id(&self) -> &str {
         &self.p1_id
     }
-    pub fn p2_id(&self) -> &str {
+
+    pub fn p2_id(&self) -> &Option<String> {
         &self.p2_id
     }
+
     pub fn game_status(&self) -> &GameStatus {
         &self.game_status
+    }
+
+    pub fn set_p2_id(&mut self, p2_id: String) -> Result<(), StorageError> {
+        match &self.p2_id {
+            Some(_existing_p2_id) => Err(StorageError::IllegalModification),
+            None => {
+                self.p2_id = Some(p2_id);
+                Ok(())
+            }
+        }
     }
 }
 
@@ -105,6 +119,7 @@ pub enum StorageError {
 
     // Server fault
     Internal,
+    IllegalModification,
 }
 
 impl Error for StorageError {}
@@ -115,6 +130,7 @@ impl Display for StorageError {
             StorageError::NotFound => f.write_str("Something not found!"),
             StorageError::Internal => f.write_str("Unexpected error."),
             StorageError::AlreadyExists => f.write_str("Already exists STOP"),
+            StorageError::IllegalModification => f.write_str("How did this f happen?"),
         }
     }
 }

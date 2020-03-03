@@ -7,19 +7,27 @@ use crate::handler::GameApiHandler;
 
 mod handler;
 
-/// Maybe this is a little too OOP? this is a learning experiment.
+/// Maybe having this as a trait is a little too OOP? this is a learning experiment.
+///
+/// Generally, all APIs have borrow inputs and owned outputs. We'll see how the usage/impl of this works.
+///
+/// This API is meant to appear to be stateless and multi-tenanted.
 pub trait GameApi {
 
-    /// TODO awesome doc
-    fn create_game(&mut self) -> Result<GameMetadata, GameError>;
+    /// Create a new game with only the host player present.
+    /// Returns game_id used for all future queries
+    fn host_game(&mut self, p1_id: &str) -> Result<String, GameError>;
+
+    /// Player 2 joins the game.
+    fn join_game(&mut self, game_id: &str, p2_id: &str) -> Result<(), GameError>;
 
     /// Note to future self: something like this could exist. Maybe it's not needed? idk
     fn describe_game(&self, game_id: &str) -> Result<GameMetadata, GameError>;
 
-    /// TODO awesome doc
+    /// Load the state of the game.
     fn get_game_state(&self, game_id: &str) -> Result<GameState, GameError>;
 
-    /// TODO awesome doc
+    /// Make a turn. Should call get_game_state() after this. Maybe not needed? Idk yet.
     fn play_card(&self, play: Play) -> Result<(), GameError>;
 }
 

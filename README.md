@@ -37,11 +37,22 @@ Just putting this here, for now.
 +-----+ +-----+ +-----+ +-----+ +-----+ +-----+ +-----+ +-----+
 ```
 
-## Planned Worklog
+## Worklog
 
+### Planned
+
+**Backend**
 1. Implement "dumb" storage
-1. Implement basics to start a game
 1. Integrate API into storage
 1. Add automated test of a game
-1. Implement main.rs event loop with CLI i/o
-1. Add rules
+1. Add rules engine
+
+**Frontend**
+1. Implement main.rs state machine
+1. Implement main.rs user turn selection
+1. Implement main.rs board drawer
+
+### Complete (to some extent)
+
+1. Implement basics to start a game
+1. Implement main.rs CLI i/o

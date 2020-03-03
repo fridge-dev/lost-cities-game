@@ -21,17 +21,21 @@ impl GameMetadata {
             p2_id
         }
     }
+
     pub fn game_id(&self) -> &str {
         &self.game_id
     }
+
     pub fn p1_id(&self) -> &str {
         &self.p1_id
     }
+
     pub fn p2_id(&self) -> &str {
         &self.p2_id
     }
 }
 
+#[derive(Debug)]
 pub struct GameState {
     game_board: GameBoard,
     p1_hand: [Card; 8],
@@ -47,11 +51,53 @@ pub struct GameBoard {
     draw_pile_cards_remaining: u8,
 }
 
+impl Debug for GameBoard {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(
+            f,
+            "GameBoard {{ p1_plays: {}, p2_plays: {}, p1_score: {}, p2_score: {}, neutral_draw_pile: {}, draw_pile_cards_remaining: {} }}",
+            fmt_hash_map(&self.p1_plays),
+            fmt_hash_map(&self.p2_plays),
+            self.p1_score,
+            self.p2_score,
+            fmt_hash_map(&self.neutral_draw_pile),
+            self.draw_pile_cards_remaining,
+        )
+    }
+}
+
+fn fmt_hash_map<K: Debug, V: Debug>(map: &HashMap<K, V>) -> String {
+    let mut v: Vec<String> = Vec::with_capacity(map.len());
+    for (key, val) in map.iter() {
+        v.push(format!("{:?}: {:?}", &key, &val));
+    }
+    format!("HashMap {{ {} }}", v.join(", "))
+}
+
+#[derive(Debug)]
 pub struct Card {
     card_color: CardColor,
     card_value: CardValue,
 }
 
+impl Card {
+    pub fn new(card_color: CardColor, card_value: CardValue) -> Self {
+        Card {
+            card_color,
+            card_value,
+        }
+    }
+
+    pub fn card_color(&self) -> &CardColor {
+        &self.card_color
+    }
+
+    pub fn card_value(&self) -> &CardValue {
+        &self.card_value
+    }
+}
+
+#[derive(Debug)]
 pub enum CardColor {
     Red,
     Green,
@@ -60,6 +106,7 @@ pub enum CardColor {
     Yellow,
 }
 
+#[derive(Debug)]
 pub enum CardValue {
     Wager,
     Two,
@@ -77,8 +124,40 @@ pub enum CardValue {
 pub struct Play<'a> {
     game_id: &'a str,
     player_id: &'a str,
-    card: Card,
-    target: CardTarget,
+    card: &'a Card,
+    target: &'a CardTarget,
+}
+
+impl<'a> Play<'a> {
+    pub fn new(
+        game_id: &'a str,
+        player_id: &'a str,
+        card: &'a Card,
+        target: &'a CardTarget,
+    ) -> Play<'a> {
+        Play {
+            game_id,
+            player_id,
+            card,
+            target,
+        }
+    }
+
+    pub fn game_id(&self) -> &str {
+        self.game_id
+    }
+
+    pub fn player_id(&self) -> &str {
+        self.player_id
+    }
+
+    pub fn card(&self) -> &Card {
+        self.card
+    }
+
+    pub fn target(&self) -> &CardTarget {
+        self.target
+    }
 }
 
 pub enum CardTarget {

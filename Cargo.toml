@@ -24,5 +24,6 @@ members = [
 [dependencies]
 # Local repo dependencies
 api = { path = "src/crates/api" }
+types = { path = "src/crates/types" }
 
 # External dependencies
