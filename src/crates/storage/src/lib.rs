@@ -33,6 +33,7 @@ pub trait GameStore {
     fn create_game_state(&mut self, storage_game_state: StorageGameState) -> Result<(), StorageError>;
 
     // U
+    fn update_game_metadata(&mut self, game_metadata: StorageGameMetadata) -> Result<(), StorageError>;
     fn update_game_state(&mut self, storage_game_state: StorageGameState) -> Result<(), StorageError>;
 
     // R
@@ -52,11 +53,16 @@ pub struct StorageGameMetadata {
 }
 
 impl StorageGameMetadata {
-    pub fn new(game_id: String, p1_id: String, game_status: GameStatus) -> Self {
+    pub fn new(
+        game_id: String,
+        p1_id: String,
+        p2_id: Option<String>,
+        game_status: GameStatus
+    ) -> Self {
         StorageGameMetadata {
             game_id,
             p1_id,
-            p2_id: None,
+            p2_id,
             game_status,
         }
     }
@@ -90,8 +96,7 @@ impl StorageGameMetadata {
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum GameStatus {
-    Hosted, // Created by host, waiting for guest
-    InProgress, // guest joined, game begins
+    InProgress, // "In progress" could also mean host is waiting for a guest
     Completed,
 }
 

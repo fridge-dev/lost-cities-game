@@ -46,6 +46,7 @@ Just putting this here, for now.
 1. Integrate API into storage
 1. Add automated test of a game
 1. Add rules engine
+1. Figure out how to make sub-crates tests run during top-level cargo build
 
 **Frontend**
 1. Implement main.rs state machine

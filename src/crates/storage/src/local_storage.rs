@@ -39,6 +39,15 @@ impl GameStore for LocalStore {
         unimplemented!()
     }
 
+    fn update_game_metadata(&mut self, game_metadata: StorageGameMetadata) -> Result<(), StorageError> {
+        if !self.metadata_map.contains_key(&game_metadata.game_id) {
+            return Err(StorageError::NotFound);
+        }
+
+        self.metadata_map.insert(game_metadata.game_id.clone(), game_metadata);
+        Ok(())
+    }
+
     fn update_game_state(&mut self, storage_game_state: StorageGameState) -> Result<(), StorageError> {
         unimplemented!()
     }
@@ -67,8 +76,8 @@ mod tests {
         let metadata = StorageGameMetadata::new(
             "game-123".to_owned(),
             "p1".to_owned(),
-            "p2".to_owned(),
-            GameStatus::Hosted
+            None,
+            GameStatus::InProgress
         );
 
         assert_eq!(
@@ -86,6 +95,40 @@ mod tests {
         assert_eq!(
             local_store.create_game_metadata(metadata.clone()).err().unwrap(),
             StorageError::AlreadyExists
+        );
+    }
+
+    #[test]
+    fn update_game_metadata() {
+        let mut local_store = LocalStore::new();
+
+        let mut metadata = StorageGameMetadata::new(
+            "game-123".to_owned(),
+            "p1".to_owned(),
+            None,
+            GameStatus::InProgress
+        );
+
+        assert_eq!(
+            local_store.update_game_metadata(metadata.clone()).err().unwrap(),
+            StorageError::NotFound
+        );
+        assert_eq!(
+            local_store.create_game_metadata(metadata.clone()).ok().unwrap(),
+            ()
+        );
+        metadata.set_p2_id("p2p2".to_owned());
+        assert_eq!(
+            local_store.update_game_metadata(metadata.clone()).ok().unwrap(),
+            ()
+        );
+        assert_eq!(
+            local_store.update_game_metadata(metadata.clone()).ok().unwrap(),
+            ()
+        );
+        assert_eq!(
+            local_store.load_game_metadata(metadata.game_id()).ok().unwrap(),
+            metadata
         );
     }
 }

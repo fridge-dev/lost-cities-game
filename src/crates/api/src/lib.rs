@@ -2,7 +2,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use types::{GameError, GameMetadata, GameState, Play};
+use types::{GameError, GameState, Play};
 use crate::handler::GameApiHandler;
 
 mod handler;
@@ -20,9 +20,6 @@ pub trait GameApi {
 
     /// Player 2 joins the game.
     fn join_game(&mut self, game_id: &str, p2_id: &str) -> Result<(), GameError>;
-
-    /// Note to future self: something like this could exist. Maybe it's not needed? idk
-    fn describe_game(&self, game_id: &str) -> Result<GameMetadata, GameError>;
 
     /// Load the state of the game.
     fn get_game_state(&self, game_id: &str) -> Result<GameState, GameError>;

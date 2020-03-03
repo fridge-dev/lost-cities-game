@@ -169,6 +169,7 @@ pub enum CardTarget {
 pub enum GameError {
     Internal,
     NotFound,
+    GameAlreadyMatched
 }
 
 impl Error for GameError {}
@@ -178,6 +179,7 @@ impl Display for GameError {
         match self {
             GameError::NotFound => f.write_str("Something not found!"),
             GameError::Internal => f.write_str("Unexpected error."),
+            GameError::GameAlreadyMatched => f.write_str("No room for u."),
         }
     }
 }

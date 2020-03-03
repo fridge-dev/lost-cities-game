@@ -1,5 +1,5 @@
 use crate::GameApi;
-use types::{GameMetadata, GameError, GameState, Play};
+use types::{GameError, GameState, Play};
 use storage::{GameStore, StorageGameMetadata, GameStatus, StorageError};
 use storage::local_storage::LocalStore;
 
@@ -22,30 +22,38 @@ impl GameApi for GameApiHandler {
         let storage_result = self.storage.create_game_metadata(StorageGameMetadata::new(
             game_id.clone(),
             p1_id.to_owned(),
-            GameStatus::Hosted,
+            None,
+            GameStatus::InProgress,
         ));
 
-        // TODO implement Into trait so I can utilize that sweet sweet `?` syntax sugar.
-        // This entire match could hypothetically be replaced with:
-        // `storage_result.map(|_| Ok(game_metadata))?`
         match storage_result {
             Ok(_) => Ok(game_id),
-            Err(e) => Err(match e {
-                StorageError::Internal => GameError::Internal,
-                // These two below are outside the control of the caller, and shouldn't be possible.
-                StorageError::AlreadyExists => GameError::Internal,
-                StorageError::NotFound => GameError::Internal,
-                StorageError::IllegalModification => GameError::Internal,
-            })
+            // This should never fail.
+            Err(e) => Err(GameError::Internal)
         }
     }
 
     fn join_game(&mut self, game_id: &str, p2_id: &str) -> Result<(), GameError> {
-        unimplemented!()
-    }
+        let mut metadata = match self.storage.load_game_metadata(game_id) {
+            Ok(v) => v,
+            Err(e) => return Err(match e {
+                StorageError::NotFound => GameError::NotFound,
+                _ => GameError::Internal
+            })
+        };
 
-    fn describe_game(&self, game_id: &str) -> Result<GameMetadata, GameError> {
-        unimplemented!()
+        if let Err(e) = metadata.set_p2_id(p2_id.to_string()) {
+            return Err(match e {
+                StorageError::IllegalModification => GameError::GameAlreadyMatched,
+                _ => GameError::Internal,
+            });
+        }
+
+        self.storage.update_game_metadata(metadata)
+            .map_err(|e| match e {
+                StorageError::NotFound => GameError::NotFound,
+                _ => GameError::Internal
+            })
     }
 
     fn get_game_state(&self, game_id: &str) -> Result<GameState, GameError> {
