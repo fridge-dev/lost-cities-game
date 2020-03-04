@@ -1,6 +1,6 @@
 use crate::GameApi;
-use types::{GameError, GameState, Play};
-use storage::{GameStore, StorageGameMetadata, GameStatus, StorageError};
+use types::{GameError, GameState, Play, GameBoard};
+use storage::{GameStore, StorageGameMetadata, GameStatus, StorageError, StorageGameState};
 use storage::local_storage::LocalStore;
 
 pub struct GameApiHandler {
@@ -54,6 +54,11 @@ impl GameApi for GameApiHandler {
                 StorageError::NotFound => GameError::NotFound,
                 _ => GameError::Internal
             })
+
+        // TODO start here
+//        self.storage.create_game_state(StorageGameState::new(
+//
+//        ))
     }
 
     fn get_game_state(&self, game_id: &str) -> Result<GameState, GameError> {

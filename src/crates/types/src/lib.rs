@@ -42,6 +42,32 @@ pub struct GameState {
     p1_turn: bool,
 }
 
+impl GameState {
+    pub fn new(
+        game_board: GameBoard,
+        p1_hand: [Card; 8],
+        p1_turn: bool
+    ) -> Self {
+        GameState {
+            game_board,
+            p1_hand,
+            p1_turn
+        }
+    }
+
+    pub fn game_board(&self) -> &GameBoard {
+        &self.game_board
+    }
+
+    pub fn p1_hand(&self) -> &[Card; 8] {
+        &self.p1_hand
+    }
+
+    pub fn p1_turn(&self) -> &bool {
+        &self.p1_turn
+    }
+}
+
 pub struct GameBoard {
     p1_plays: HashMap<CardColor, Vec<CardValue>>,
     p2_plays: HashMap<CardColor, Vec<CardValue>>,
@@ -49,6 +75,50 @@ pub struct GameBoard {
     p2_score: i32,
     neutral_draw_pile: HashMap<CardColor, (CardValue, u8)>,
     draw_pile_cards_remaining: u8,
+}
+
+impl GameBoard {
+    pub fn new(
+        p1_plays: HashMap<CardColor, Vec<CardValue>>,
+        p2_plays: HashMap<CardColor, Vec<CardValue>>,
+        p1_score: i32,
+        p2_score: i32,
+        neutral_draw_pile: HashMap<CardColor, (CardValue, u8)>,
+        draw_pile_cards_remaining: u8
+    ) -> Self {
+        GameBoard {
+            p1_plays,
+            p2_plays,
+            p1_score,
+            p2_score,
+            neutral_draw_pile,
+            draw_pile_cards_remaining
+        }
+    }
+
+    pub fn p1_plays(&self) -> &HashMap<CardColor, Vec<CardValue>> {
+        &self.p1_plays
+    }
+
+    pub fn p2_plays(&self) -> &HashMap<CardColor, Vec<CardValue>> {
+        &self.p2_plays
+    }
+
+    pub fn p1_score(&self) -> &i32 {
+        &self.p1_score
+    }
+
+    pub fn p2_score(&self) -> &i32 {
+        &self.p2_score
+    }
+
+    pub fn neutral_draw_pile(&self) -> &HashMap<CardColor, (CardValue, u8)> {
+        &self.neutral_draw_pile
+    }
+
+    pub fn draw_pile_cards_remaining(&self) -> &u8 {
+        &self.draw_pile_cards_remaining
+    }
 }
 
 impl Debug for GameBoard {
