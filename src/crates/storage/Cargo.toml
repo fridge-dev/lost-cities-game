@@ -11,3 +11,6 @@ edition = "2018"
 types = { path = "../types" }
 
 # External dependencies
+
+[dev-dependencies]
+rand = "=0.7.3"

@@ -35,8 +35,13 @@ impl GameStore for LocalStore {
         Ok(())
     }
 
-    fn create_game_state(&mut self, storage_game_state: StorageGameState) -> Result<(), StorageError> {
-        unimplemented!()
+    fn create_game_state(&mut self, game_state: StorageGameState) -> Result<(), StorageError> {
+        if self.state_map.contains_key(&game_state.game_id) {
+            return Err(StorageError::AlreadyExists);
+        }
+
+        self.state_map.insert(game_state.game_id.clone(), game_state);
+        Ok(())
     }
 
     fn update_game_metadata(&mut self, game_metadata: StorageGameMetadata) -> Result<(), StorageError> {
@@ -48,8 +53,13 @@ impl GameStore for LocalStore {
         Ok(())
     }
 
-    fn update_game_state(&mut self, storage_game_state: StorageGameState) -> Result<(), StorageError> {
-        unimplemented!()
+    fn update_game_state(&mut self, game_state: StorageGameState) -> Result<(), StorageError> {
+        if !self.state_map.contains_key(&game_state.game_id) {
+            return Err(StorageError::NotFound);
+        }
+
+        self.state_map.insert(game_state.game_id.clone(), game_state);
+        Ok(())
     }
 
     fn load_game_metadata(&self, game_id: &str) -> Result<StorageGameMetadata, StorageError> {
@@ -60,7 +70,10 @@ impl GameStore for LocalStore {
     }
 
     fn load_game_state(&self, game_id: &str) -> Result<StorageGameState, StorageError> {
-        unimplemented!()
+        match self.state_map.get(game_id) {
+            None => Err(StorageError::NotFound),
+            Some(game_state) => Ok((*game_state).clone())
+        }
     }
 }
 
@@ -102,7 +115,7 @@ mod tests {
     fn update_game_metadata() {
         let mut local_store = LocalStore::new();
 
-        let mut metadata = StorageGameMetadata::new(
+        let metadata = StorageGameMetadata::new(
             "game-123".to_owned(),
             "p1".to_owned(),
             None,
@@ -117,18 +130,103 @@ mod tests {
             local_store.create_game_metadata(metadata.clone()).ok().unwrap(),
             ()
         );
-        metadata.set_p2_id("p2p2".to_owned());
+        let mut metadata2 = metadata.clone();
+        if let Err(e) = metadata2.set_p2_id("p2p2".to_owned()) {
+            panic!("set_p2_id failed {}", e);
+        }
         assert_eq!(
-            local_store.update_game_metadata(metadata.clone()).ok().unwrap(),
+            local_store.update_game_metadata(metadata2.clone()).ok().unwrap(),
             ()
         );
         assert_eq!(
-            local_store.update_game_metadata(metadata.clone()).ok().unwrap(),
+            local_store.update_game_metadata(metadata2.clone()).ok().unwrap(),
             ()
         );
         assert_eq!(
             local_store.load_game_metadata(metadata.game_id()).ok().unwrap(),
-            metadata
+            metadata2
         );
+        assert_ne!(metadata, metadata2);
+    }
+
+    #[test]
+    fn create_load_game_state() {
+        let mut local_store = LocalStore::new();
+
+        let game_state = StorageGameState::new(
+            "game-123".to_owned(),
+            [rand::random() ; 8],
+            [rand::random() ; 8],
+            HashMap::new(),
+            HashMap::new(),
+            HashMap::new(),
+            Vec::new(),
+            true
+        );
+
+        assert_eq!(
+            local_store.load_game_state(game_state.game_id()).err().unwrap(),
+            StorageError::NotFound
+        );
+        assert_eq!(
+            local_store.create_game_state(game_state.clone()).ok().unwrap(),
+            ()
+        );
+        assert_eq!(
+            local_store.load_game_state(game_state.game_id()).ok().unwrap(),
+            game_state
+        );
+        assert_eq!(
+            local_store.create_game_state(game_state.clone()).err().unwrap(),
+            StorageError::AlreadyExists
+        );
+    }
+
+    #[test]
+    fn update_game_state() {
+        let mut local_store = LocalStore::new();
+
+        let game_state = StorageGameState::new(
+            "game-123".to_owned(),
+            [rand::random() ; 8],
+            [rand::random() ; 8],
+            HashMap::new(),
+            HashMap::new(),
+            HashMap::new(),
+            Vec::new(),
+            true
+        );
+
+        assert_eq!(
+            local_store.update_game_state(game_state.clone()).err().unwrap(),
+            StorageError::NotFound
+        );
+        assert_eq!(
+            local_store.create_game_state(game_state.clone()).ok().unwrap(),
+            ()
+        );
+        let updated_game_state = StorageGameState::new(
+            "game-123".to_owned(),
+            [rand::random() ; 8],
+            [rand::random() ; 8],
+            HashMap::new(),
+            HashMap::new(),
+            HashMap::new(),
+            Vec::new(),
+            false
+        );
+        assert_eq!(
+            local_store.update_game_state(updated_game_state.clone()).ok().unwrap(),
+            ()
+        );
+        assert_eq!(
+            local_store.update_game_state(updated_game_state.clone()).ok().unwrap(),
+            ()
+        );
+        assert_eq!(
+            local_store.load_game_state(game_state.game_id()).ok().unwrap(),
+            updated_game_state
+        );
+        assert_ne!(game_state, updated_game_state);
     }
 }

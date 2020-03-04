@@ -74,7 +74,7 @@ fn fmt_hash_map<K: Debug, V: Debug>(map: &HashMap<K, V>) -> String {
     format!("HashMap {{ {} }}", v.join(", "))
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Card {
     card_color: CardColor,
     card_value: CardValue,
@@ -97,7 +97,7 @@ impl Card {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum CardColor {
     Red,
     Green,
@@ -106,7 +106,7 @@ pub enum CardColor {
     Yellow,
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum CardValue {
     Wager,
     Two,
@@ -118,6 +118,57 @@ pub enum CardValue {
     Eight,
     Nine,
     Ten,
+}
+
+mod rand_utils {
+    use rand::{
+        distributions::{Distribution, Standard},
+        Rng,
+    };
+    use crate::{Card, CardColor, CardValue};
+
+
+    impl Distribution<Card> for Standard {
+        fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Card {
+            Card {
+                card_color: rand::random(),
+                card_value: rand::random(),
+            }
+        }
+    }
+
+    impl Distribution<CardColor> for Standard {
+        fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> CardColor {
+            let arr = [
+                CardColor::Red,
+                CardColor::Green,
+                CardColor::White,
+                CardColor::Blue,
+                CardColor::Yellow,
+            ];
+            let index: usize = rng.gen_range(0, arr.len());
+            arr[index]
+        }
+    }
+
+    impl Distribution<CardValue> for Standard {
+        fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> CardValue {
+            let arr = [
+                CardValue::Two,
+                CardValue::Three,
+                CardValue::Four,
+                CardValue::Five,
+                CardValue::Six,
+                CardValue::Seven,
+                CardValue::Eight,
+                CardValue::Nine,
+                CardValue::Ten,
+                CardValue::Wager,
+            ];
+            let index: usize = rng.gen_range(0, arr.len());
+            arr[index]
+        }
+    }
 }
 
 // I think this usage of lifetimes is "safe" and won't be complicated later. Let's find out!
