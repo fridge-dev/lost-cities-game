@@ -1,3 +1,5 @@
+use rand_core::RngCore;
+
 /// Okay, so why would you ever implement your own RNG? Because surprisingly there's no fricking easy
 /// existing rust **Pseudo** RNG! I need a seeded RNG (i.e. PRNG) to be able to reproduce deck shuffling.
 /// Do I really need that? Maybe not. But for most (non-crypto related) use cases, I've found it's really
@@ -45,7 +47,7 @@
 /// ```
 ///
 /// Alas. Here we are. I don't know what this does. But it works pretty decently.
-struct PrngRand {
+pub struct PrngRand {
     n: u64,
 }
 
@@ -79,19 +81,29 @@ impl PrngRand {
         // prevents overflow
         (x as u128 * PRNG_MULTIPLIER as u128) as u64
     }
+}
 
-    /// Helper method to generate next random number with a modulo. If u64 max value
-    /// isn't evenly divisible by your modulo, random will be unfairly weighted towards
-    /// the lower values. But that shouldn't really matter for most, low (10s, 100s) of
-    /// modulo.
-    pub fn next_modulo(&mut self, modulo: u64) -> u64 {
-        (self.next() % modulo) as u64
+impl RngCore for PrngRand {
+    fn next_u32(&mut self) -> u32 {
+        self.next() as u32
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        self.next()
+    }
+
+    fn fill_bytes(&mut self, dest: &mut [u8]) {
+        rand_core::impls::fill_bytes_via_next(self, dest)
+    }
+
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
+        Ok(self.fill_bytes(dest))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::PrngRand;
+    use super::*;
     use std::collections::HashMap;
 
     #[test]
@@ -126,7 +138,7 @@ mod tests {
         let mut rng1 = PrngRand::new(1234);
         let mut rng2 = PrngRand::new(1234);
 
-        for i in 0..num_rngs_to_test {
+        for _ in 0..num_rngs_to_test {
             assert_eq!(
                 rng1.next(),
                 rng2.next()

@@ -12,4 +12,5 @@ storage = { path = "../storage" }
 types = { path = "../types" }
 
 # External dependencies
-#rand = "=0.7.3"
+rand = "=0.7.3"
+rand_core = "=0.5.1"
