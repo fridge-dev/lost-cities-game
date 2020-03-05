@@ -155,8 +155,8 @@ mod tests {
 
         let game_state = StorageGameState::new(
             "game-123".to_owned(),
-            [rand::random() ; 8],
-            [rand::random() ; 8],
+            Vec::new(),
+            Vec::new(),
             HashMap::new(),
             HashMap::new(),
             HashMap::new(),
@@ -188,8 +188,8 @@ mod tests {
 
         let game_state = StorageGameState::new(
             "game-123".to_owned(),
-            [rand::random() ; 8],
-            [rand::random() ; 8],
+            Vec::new(),
+            Vec::new(),
             HashMap::new(),
             HashMap::new(),
             HashMap::new(),
@@ -207,8 +207,8 @@ mod tests {
         );
         let updated_game_state = StorageGameState::new(
             "game-123".to_owned(),
-            [rand::random() ; 8],
-            [rand::random() ; 8],
+            Vec::new(),
+            Vec::new(),
             HashMap::new(),
             HashMap::new(),
             HashMap::new(),

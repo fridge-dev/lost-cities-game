@@ -10,5 +10,7 @@ edition = "2018"
 # Local repo dependencies
 storage = { path = "../storage" }
 types = { path = "../types" }
+rules = { path = "../rules" }
 
 # External dependencies
+rand = "=0.7.3"

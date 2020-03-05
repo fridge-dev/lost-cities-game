@@ -56,7 +56,8 @@ impl DeckFactory {
 
     fn new_shuffled_deck_with_seed(&self, seed_for_random: u64) -> Vec<Card> {
         let mut deck = self.unshuffled_deck.clone();
-        deck.shuffle(&mut PrngRand::new(seed_for_random));
+        let prng = &mut PrngRand::new(seed_for_random);
+        deck.shuffle(prng);
 
         deck
     }

@@ -288,9 +288,14 @@ pub enum CardTarget {
 
 #[derive(Debug)]
 pub enum GameError {
-    Internal,
+    Internal(Cause),
     NotFound,
     GameAlreadyMatched
+}
+
+#[derive(Debug)]
+pub enum Cause {
+    Storage(&'static str),
 }
 
 impl Error for GameError {}
@@ -299,7 +304,7 @@ impl Display for GameError {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
             GameError::NotFound => f.write_str("Something not found!"),
-            GameError::Internal => f.write_str("Unexpected error."),
+            GameError::Internal(cause) => f.write_str(&format!("Unexpected error: {:?}", cause)),
             GameError::GameAlreadyMatched => f.write_str("No room for u."),
         }
     }

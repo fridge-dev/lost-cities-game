@@ -105,8 +105,8 @@ pub struct StorageGameState {
     // Maybe metadata should be in here instead? leaving it out for now. Idk.
     game_id: String,
 
-    p1_hand: [Card; 8],
-    p2_hand: [Card; 8],
+    p1_hand: Vec<Card>,
+    p2_hand: Vec<Card>,
 
     p1_plays: HashMap<CardColor, Vec<CardValue>>,
     p2_plays: HashMap<CardColor, Vec<CardValue>>,
@@ -120,8 +120,8 @@ pub struct StorageGameState {
 impl StorageGameState {
     pub fn new(
         game_id: String,
-        p1_hand: [Card; 8],
-        p2_hand: [Card; 8],
+        p1_hand: Vec<Card>,
+        p2_hand: Vec<Card>,
         p1_plays: HashMap<CardColor, Vec<CardValue>>,
         p2_plays: HashMap<CardColor, Vec<CardValue>>,
         neutral_draw_pile: HashMap<CardColor, Vec<CardValue>>,
@@ -144,11 +144,11 @@ impl StorageGameState {
         &self.game_id
     }
 
-    pub fn p1_hand(&self) -> &[Card; 8] {
+    pub fn p1_hand(&self) -> &Vec<Card> {
         &self.p1_hand
     }
 
-    pub fn p2_hand(&self) -> &[Card; 8] {
+    pub fn p2_hand(&self) -> &Vec<Card> {
         &self.p2_hand
     }
 
