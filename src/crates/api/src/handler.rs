@@ -1,5 +1,5 @@
 use crate::GameApi;
-use types::{GameError, GameState, Play, Card, Cause};
+use types::{GameError, GameState, Play, Card, Cause, GameBoard};
 use storage::{GameStore, StorageGameMetadata, GameStatus, StorageError, StorageGameState};
 use storage::local_storage::LocalStore;
 use rules::deck::DeckFactory;
@@ -86,7 +86,38 @@ impl GameApi for GameApiHandler {
     }
 
     fn get_game_state(&self, game_id: &str) -> Result<GameState, GameError> {
-        unimplemented!()
+        let storage_game_state = self.storage.load_game_state(game_id)
+            .map_err(|e| match e {
+                StorageError::NotFound => GameError::NotFound,
+                _ => GameError::Internal(Cause::Storage("Failed to load game state.")),
+            })?;
+
+        println!("DEBUG: Loaded game state: {:?}", storage_game_state);
+
+        // Expensive cloning incoming... :P
+
+        // TODO use storage_game_state.neutral_draw_pile()
+        let concealed_neutral_draw_pile = HashMap::new();
+
+        let game_board = GameBoard::new(
+            storage_game_state.p1_plays().to_owned(),
+            storage_game_state.p2_plays().to_owned(),
+            // TODO implement scoring
+            0,
+            0,
+            concealed_neutral_draw_pile,
+            storage_game_state.draw_pile_cards_remaining().len(),
+        );
+
+        let game_state = GameState::new(
+            game_board,
+            // TODO show hand of requested player
+            storage_game_state.p1_hand().to_owned(),
+            // TODO show who's turn it is
+            *storage_game_state.p1_turn()
+        );
+
+        return Ok(game_state);
     }
 
     fn play_card(&self, play: Play) -> Result<(), GameError> {

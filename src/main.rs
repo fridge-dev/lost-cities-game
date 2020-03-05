@@ -20,19 +20,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!();
 
     let game_state = game_api.get_game_state(&game_id)?;
+    println!("Frontend Game state: {:?}", game_state);
 
     // Game loop
     let players: [&str; 2] = [&p1_id, &p2_id];
-    let mut next_player = 0;
+    let mut next_player = if *game_state.is_my_turn() { 0 } else { 1 };
     loop {
-        println!("Game state: {:?}", game_state);
-        let card = Cli::prompt_for_input("Play a card: ");
+        let current_player_id: &str = players[next_player];
+
+        let card = Cli::prompt_for_input(&format!("'{}', play a card: ", current_player_id));
         if &card == "q" {
             println!("Quitting, GG.");
             break;
         }
-
-        let current_player_id: &str = players[next_player];
 
         game_api.play_card(Play::new(
             &game_id,

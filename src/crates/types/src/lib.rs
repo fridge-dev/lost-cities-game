@@ -38,20 +38,20 @@ impl GameMetadata {
 #[derive(Debug)]
 pub struct GameState {
     game_board: GameBoard,
-    p1_hand: [Card; 8],
-    p1_turn: bool,
+    my_hand: Vec<Card>,
+    is_my_turn: bool,
 }
 
 impl GameState {
     pub fn new(
         game_board: GameBoard,
-        p1_hand: [Card; 8],
-        p1_turn: bool
+        my_hand: Vec<Card>,
+        is_my_turn: bool
     ) -> Self {
         GameState {
             game_board,
-            p1_hand,
-            p1_turn
+            my_hand,
+            is_my_turn
         }
     }
 
@@ -59,12 +59,12 @@ impl GameState {
         &self.game_board
     }
 
-    pub fn p1_hand(&self) -> &[Card; 8] {
-        &self.p1_hand
+    pub fn my_hand(&self) -> &Vec<Card> {
+        &self.my_hand
     }
 
-    pub fn p1_turn(&self) -> &bool {
-        &self.p1_turn
+    pub fn is_my_turn(&self) -> &bool {
+        &self.is_my_turn
     }
 }
 
@@ -74,7 +74,7 @@ pub struct GameBoard {
     p1_score: i32,
     p2_score: i32,
     neutral_draw_pile: HashMap<CardColor, (CardValue, u8)>,
-    draw_pile_cards_remaining: u8,
+    draw_pile_cards_remaining: usize,
 }
 
 impl GameBoard {
@@ -84,7 +84,7 @@ impl GameBoard {
         p1_score: i32,
         p2_score: i32,
         neutral_draw_pile: HashMap<CardColor, (CardValue, u8)>,
-        draw_pile_cards_remaining: u8
+        draw_pile_cards_remaining: usize
     ) -> Self {
         GameBoard {
             p1_plays,
@@ -116,7 +116,7 @@ impl GameBoard {
         &self.neutral_draw_pile
     }
 
-    pub fn draw_pile_cards_remaining(&self) -> &u8 {
+    pub fn draw_pile_cards_remaining(&self) -> &usize {
         &self.draw_pile_cards_remaining
     }
 }
