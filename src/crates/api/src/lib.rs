@@ -17,8 +17,8 @@ pub trait GameApi {
     /// Player 2 joins the game.
     fn join_game(&mut self, game_id: &str, p2_id: &str) -> Result<(), GameError>;
 
-    /// Load the state of the game.
-    fn get_game_state(&self, game_id: &str) -> Result<GameState, GameError>;
+    /// Load the state of the game as observed by the requested player.
+    fn get_game_state(&self, game_id: &str, player_id: &str) -> Result<GameState, GameError>;
 
     /// Make a turn. Should call get_game_state() after this. Maybe not needed? Idk yet.
     fn play_card(&self, play: Play) -> Result<(), GameError>;

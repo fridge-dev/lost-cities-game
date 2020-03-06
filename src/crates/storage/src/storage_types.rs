@@ -4,6 +4,8 @@ use core::fmt;
 use types::{Card, CardColor, CardValue}; // This is a broken layer of abstraction. But I'm sick of re-writing the same types for now. I'm trying to learn rust!
 use std::collections::HashMap;
 
+const MISSING_P2_ID_MSG: &str = "Player 2 id is missing from metadata. If this happens, I was probably not as careful as I assumed and I should rename this method.";
+
 #[derive(Clone, PartialEq, Debug)]
 pub struct StorageGameMetadata {
     game_id: String,
@@ -35,8 +37,12 @@ impl StorageGameMetadata {
         &self.p1_id
     }
 
-    pub fn p2_id(&self) -> &Option<String> {
+    pub fn p2_id_opt(&self) -> &Option<String> {
         &self.p2_id
+    }
+
+    pub fn p2_id(&self) -> &str {
+        self.p2_id.as_ref().expect(MISSING_P2_ID_MSG)
     }
 
     pub fn game_status(&self) -> &GameStatus {

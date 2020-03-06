@@ -19,14 +19,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("Welcome. This game will feature '{}' vs '{}'.", p1_id, p2_id);
     println!();
 
-    let game_state = game_api.get_game_state(&game_id)?;
-    println!("Frontend Game state: {:?}", game_state);
-
-    let mut player_turns = if *game_state.is_my_turn() {
-        Alternator::new(&p1_id, &p2_id)
+    // Arbitrarily load p1 view, then reload p2.
+    let game_state = game_api.get_game_state(&game_id, &p1_id)?;
+    let mut player_turns: Alternator<String>;
+    if !game_state.is_my_turn() {
+        let game_state = game_api.get_game_state(&game_id, &p2_id)?;
+        assert!(game_state.is_my_turn());
+        player_turns = Alternator::new(&p2_id, &p1_id);
     } else {
-        Alternator::new(&p2_id, &p1_id)
-    };
+        player_turns = Alternator::new(&p1_id, &p2_id);
+    }
+    println!("Frontend Game state: {:?}", game_state);
 
     // Game loop
     loop {

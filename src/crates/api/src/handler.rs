@@ -22,7 +22,7 @@ impl GameApiHandler {
     fn update_game_metadata(&mut self, game_id: &str, p2_id: &str) -> Result<(), GameError> {
         let mut metadata = self.storage.load_game_metadata(game_id)
             .map_err(|e| match e {
-                StorageError::NotFound => GameError::NotFound,
+                StorageError::NotFound => GameError::NotFound("Game metadata"),
                 _ => GameError::Internal(Cause::Storage("Failed to load game metadata", Box::new(e)))
             })?;
         metadata.set_p2_id(p2_id.to_string())
@@ -32,7 +32,7 @@ impl GameApiHandler {
             })?;
         self.storage.update_game_metadata(metadata)
             .map_err(|e| match e {
-                StorageError::NotFound => GameError::NotFound,
+                StorageError::NotFound => GameError::NotFound("Game metadata"),
                 _ => GameError::Internal(Cause::Storage("Failed to save game metadata", Box::new(e)))
             })
     }
@@ -86,10 +86,24 @@ impl GameApi for GameApiHandler {
         self.create_initial_game_state(game_id)
     }
 
-    fn get_game_state(&self, game_id: &str) -> Result<GameState, GameError> {
+    fn get_game_state(&self, game_id: &str, player_id: &str) -> Result<GameState, GameError> {
+        let metadata = self.storage.load_game_metadata(game_id)
+            .map_err(|e| match e {
+                StorageError::NotFound => GameError::NotFound("Game metadata"),
+                _ => GameError::Internal(Cause::Storage("Failed to load game", Box::new(e)))
+            })?;
+
+        let is_player_1 = if player_id == metadata.p1_id() {
+            true
+        } else if player_id == metadata.p2_id() {
+            false
+        } else {
+            return Err(GameError::NotFound("Player in game"));
+        };
+
         let storage_game_state = self.storage.load_game_state(game_id)
             .map_err(|e| match e {
-                StorageError::NotFound => GameError::NotFound,
+                StorageError::NotFound => GameError::NotFound("Game state"),
                 _ => GameError::Internal(Cause::Storage("Failed to load game state.", Box::new(e))),
             })?;
 
@@ -97,6 +111,7 @@ impl GameApi for GameApiHandler {
 
         // Expensive cloning incoming... :P
 
+        // Here is where we only show what the player is allowed to see.
         // TODO use storage_game_state.neutral_draw_pile()
         let concealed_neutral_draw_pile = HashMap::new();
 
@@ -110,12 +125,16 @@ impl GameApi for GameApiHandler {
             storage_game_state.draw_pile_cards_remaining().len(),
         );
 
+        let (my_hand, is_my_turn) = if is_player_1 {
+            (storage_game_state.p1_hand(), *storage_game_state.p1_turn())
+        } else {
+            (storage_game_state.p2_hand(), !*storage_game_state.p1_turn())
+        };
+
         let game_state = GameState::new(
             game_board,
-            // TODO show hand of requested player
-            storage_game_state.p1_hand().to_owned(),
-            // TODO show who's turn it is
-            *storage_game_state.p1_turn()
+            my_hand.to_owned(),
+            is_my_turn
         );
 
         return Ok(game_state);
