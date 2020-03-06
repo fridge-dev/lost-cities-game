@@ -1,7 +1,3 @@
-// TODO remove these once I get into the thick of things.
-#![allow(dead_code)]
-#![allow(unused_variables)]
-
 use types::{GameError, GameState, Play};
 use crate::handler::GameApiHandler;
 
@@ -32,12 +28,4 @@ pub trait GameApi {
 // Consider removing this interface. See https://stackoverflow.com/a/27570064.
 pub fn new_game_api() -> Box<dyn GameApi> {
     Box::new(GameApiHandler::new())
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
 }

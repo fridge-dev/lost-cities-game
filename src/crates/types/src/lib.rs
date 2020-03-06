@@ -1,7 +1,3 @@
-// TODO remove these once I get into the thick of things.
-#![allow(dead_code)]
-#![allow(unused_variables)]
-
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::error::Error;
@@ -199,7 +195,7 @@ mod rand_utils {
 
 
     impl Distribution<Card> for Standard {
-        fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Card {
+        fn sample<R: Rng + ?Sized>(&self, _rng: &mut R) -> Card {
             Card {
                 card_color: rand::random(),
                 card_value: rand::random(),
@@ -295,7 +291,7 @@ pub enum GameError {
 
 #[derive(Debug)]
 pub enum Cause {
-    Storage(&'static str),
+    Storage(&'static str, Box<dyn Error>),
 }
 
 impl Error for GameError {}

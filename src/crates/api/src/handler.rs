@@ -22,17 +22,17 @@ impl GameApiHandler {
         let mut metadata = self.storage.load_game_metadata(game_id)
             .map_err(|e| match e {
                 StorageError::NotFound => GameError::NotFound,
-                _ => GameError::Internal(Cause::Storage("Failed to load game metadata"))
+                _ => GameError::Internal(Cause::Storage("Failed to load game metadata", Box::new(e)))
             })?;
         metadata.set_p2_id(p2_id.to_string())
             .map_err(|e| match e {
                 StorageError::IllegalModification => GameError::GameAlreadyMatched,
-                _ => GameError::Internal(Cause::Storage("Failed to mutate game metadata")),
+                _ => GameError::Internal(Cause::Storage("Failed to mutate game metadata", Box::new(e))),
             })?;
         self.storage.update_game_metadata(metadata)
             .map_err(|e| match e {
                 StorageError::NotFound => GameError::NotFound,
-                _ => GameError::Internal(Cause::Storage("Failed to save game metadata"))
+                _ => GameError::Internal(Cause::Storage("Failed to save game metadata", Box::new(e)))
             })
     }
 
@@ -58,7 +58,7 @@ impl GameApiHandler {
         );
 
         self.storage.create_game_state(game_state)
-            .map_err(|_| GameError::Internal(Cause::Storage("Failed to save initial game state")))
+            .map_err(|e| GameError::Internal(Cause::Storage("Failed to save initial game state", Box::new(e))))
     }
 }
 
@@ -76,7 +76,7 @@ impl GameApi for GameApiHandler {
         match storage_result {
             Ok(_) => Ok(game_id),
             // This should never fail.
-            Err(e) => Err(GameError::Internal(Cause::Storage("Failed to list game as hosted.")))
+            Err(e) => Err(GameError::Internal(Cause::Storage("Failed to list game as hosted.", Box::new(e))))
         }
     }
 
@@ -89,7 +89,7 @@ impl GameApi for GameApiHandler {
         let storage_game_state = self.storage.load_game_state(game_id)
             .map_err(|e| match e {
                 StorageError::NotFound => GameError::NotFound,
-                _ => GameError::Internal(Cause::Storage("Failed to load game state.")),
+                _ => GameError::Internal(Cause::Storage("Failed to load game state.", Box::new(e))),
             })?;
 
         println!("DEBUG: Loaded game state: {:?}", storage_game_state);

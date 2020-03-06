@@ -1,7 +1,3 @@
-// TODO remove these once I get into the thick of things.
-#![allow(dead_code)]
-#![allow(unused_variables)]
-
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use core::fmt;

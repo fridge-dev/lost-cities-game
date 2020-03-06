@@ -55,6 +55,7 @@ Just putting this here, for now.
 1. Implement main.rs board drawer
 
 **General**
+1. Figure out best way to model error propagation to top level.
 1. Figure out how to make sub-crates tests run during top-level cargo build
 1. Add automated test of a game
 1. Test coverage?
