@@ -22,11 +22,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     let game_state = game_api.get_game_state(&game_id)?;
     println!("Frontend Game state: {:?}", game_state);
 
+    let mut player_turns = if *game_state.is_my_turn() {
+        Alternator::new(&p1_id, &p2_id)
+    } else {
+        Alternator::new(&p2_id, &p1_id)
+    };
+
     // Game loop
-    let players: [&str; 2] = [&p1_id, &p2_id];
-    let mut next_player = if *game_state.is_my_turn() { 0 } else { 1 };
     loop {
-        let current_player_id: &str = players[next_player];
+        let current_player_id: &str = player_turns.next();
 
         let card = Cli::prompt_for_input(&format!("'{}', play a card: ", current_player_id));
         if &card == "q" {
@@ -40,11 +44,30 @@ fn main() -> Result<(), Box<dyn Error>> {
             &Card::new(CardColor::White, CardValue::Seven),
             &CardTarget::Player
         ))?;
-
-        next_player ^= 1;
     }
 
     Ok(())
+}
+
+// TODO move this to lib, this doesn't belong in main
+struct Alternator<'a, T> {
+    pair: [&'a T; 2],
+    next_index: usize,
+}
+
+impl<'a, T> Alternator<'a, T> {
+    pub fn new(first: &'a T, second: &'a T) -> Self {
+        Alternator {
+            pair: [first, second],
+            // first call to "next" will return index 0
+            next_index: 1,
+        }
+    }
+
+    pub fn next(&mut self) -> &T {
+        self.next_index ^= 1;
+        self.pair[self.next_index]
+    }
 }
 
 struct Cli;

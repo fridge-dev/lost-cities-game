@@ -42,18 +42,26 @@ Just putting this here, for now.
 ### Planned
 
 **Backend**
-1. Implement "dumb" storage
-1. Integrate API into storage
-1. Add automated test of a game
+1. GetState for viewing player
 1. Add rules engine
-1. Figure out how to make sub-crates tests run during top-level cargo build
+1. Implement scoring
+1. Implement updating based on a turn
+1. Implement backend with file storage
+1. Figure out nio task model for backend
 
 **Frontend**
-1. Implement main.rs state machine
-1. Implement main.rs user turn selection
+1. Implement main.rs state machine (turns, end game)
+1. Implement main.rs user turn selection I/O
 1. Implement main.rs board drawer
+
+**General**
+1. Figure out how to make sub-crates tests run during top-level cargo build
+1. Add automated test of a game
+1. Test coverage?
 
 ### Complete (to some extent)
 
 1. Implement basics to start a game
 1. Implement main.rs CLI i/o
+1. Implement "dumb" storage
+1. Integrate API into storage
