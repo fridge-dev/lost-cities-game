@@ -1,6 +1,7 @@
 use crate::GameApi;
 use types::{GameError, GameState, Play, Card, Cause, GameBoard};
-use storage::{GameStore, StorageGameMetadata, GameStatus, StorageError, StorageGameState};
+use storage::storage_types::{StorageGameMetadata, GameStatus, StorageError, StorageGameState};
+use storage::storage_api::GameStore;
 use storage::local_storage::LocalStore;
 use rules::deck::DeckFactory;
 use std::collections::HashMap;

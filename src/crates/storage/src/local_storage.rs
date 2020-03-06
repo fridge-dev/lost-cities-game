@@ -1,4 +1,5 @@
-use crate::{GameStore, StorageGameMetadata, StorageError, StorageGameState};
+use crate::storage_types::{StorageGameMetadata, StorageError, StorageGameState};
+use crate::storage_api::GameStore;
 use std::collections::HashMap;
 
 pub struct LocalStore {
@@ -27,38 +28,38 @@ impl LocalStore {
 impl GameStore for LocalStore {
 
     fn create_game_metadata(&mut self, game_metadata: StorageGameMetadata) -> Result<(), StorageError> {
-        if self.metadata_map.contains_key(&game_metadata.game_id) {
+        if self.metadata_map.contains_key(game_metadata.game_id()) {
             return Err(StorageError::AlreadyExists);
         }
 
-        self.metadata_map.insert(game_metadata.game_id.clone(), game_metadata);
+        self.metadata_map.insert(game_metadata.game_id().to_owned(), game_metadata);
         Ok(())
     }
 
     fn create_game_state(&mut self, game_state: StorageGameState) -> Result<(), StorageError> {
-        if self.state_map.contains_key(&game_state.game_id) {
+        if self.state_map.contains_key(game_state.game_id()) {
             return Err(StorageError::AlreadyExists);
         }
 
-        self.state_map.insert(game_state.game_id.clone(), game_state);
+        self.state_map.insert(game_state.game_id().to_owned(), game_state);
         Ok(())
     }
 
     fn update_game_metadata(&mut self, game_metadata: StorageGameMetadata) -> Result<(), StorageError> {
-        if !self.metadata_map.contains_key(&game_metadata.game_id) {
+        if !self.metadata_map.contains_key(game_metadata.game_id()) {
             return Err(StorageError::NotFound);
         }
 
-        self.metadata_map.insert(game_metadata.game_id.clone(), game_metadata);
+        self.metadata_map.insert(game_metadata.game_id().to_owned(), game_metadata);
         Ok(())
     }
 
     fn update_game_state(&mut self, game_state: StorageGameState) -> Result<(), StorageError> {
-        if !self.state_map.contains_key(&game_state.game_id) {
+        if !self.state_map.contains_key(game_state.game_id()) {
             return Err(StorageError::NotFound);
         }
 
-        self.state_map.insert(game_state.game_id.clone(), game_state);
+        self.state_map.insert(game_state.game_id().to_owned(), game_state);
         Ok(())
     }
 
@@ -80,7 +81,7 @@ impl GameStore for LocalStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::GameStatus;
+    use crate::storage_types::GameStatus;
 
     #[test]
     fn create_load_game_metadata() {
