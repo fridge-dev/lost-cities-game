@@ -112,8 +112,12 @@ impl GameApi for GameApiHandler {
         // Expensive cloning incoming... :P
 
         // Here is where we only show what the player is allowed to see.
-        // TODO use storage_game_state.neutral_draw_pile()
-        let concealed_neutral_draw_pile = HashMap::new();
+        let mut concealed_neutral_draw_pile = HashMap::new();
+        for (color, value_vec) in storage_game_state.neutral_draw_pile().iter() {
+            if let Some(top_card) = value_vec.last() {
+                concealed_neutral_draw_pile.insert(*color, (*top_card, value_vec.len()));
+            }
+        }
 
         let game_board = GameBoard::new(
             storage_game_state.p1_plays().to_owned(),

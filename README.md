@@ -42,7 +42,6 @@ Just putting this here, for now.
 ### Planned
 
 **Backend**
-1. Fully implement GetGameState API
 1. Add rules engine
 1. Implement scoring
 1. Implement updating based on a turn
@@ -67,3 +66,4 @@ Just putting this here, for now.
 1. Implement "dumb" storage
 1. Integrate API into storage
 1. GetState for viewing player
+1. Fully implement GetGameState API

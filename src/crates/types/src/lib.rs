@@ -69,7 +69,7 @@ pub struct GameBoard {
     p2_plays: HashMap<CardColor, Vec<CardValue>>,
     p1_score: i32,
     p2_score: i32,
-    neutral_draw_pile: HashMap<CardColor, (CardValue, u8)>,
+    neutral_draw_pile: HashMap<CardColor, (CardValue, usize)>,
     draw_pile_cards_remaining: usize,
 }
 
@@ -79,7 +79,7 @@ impl GameBoard {
         p2_plays: HashMap<CardColor, Vec<CardValue>>,
         p1_score: i32,
         p2_score: i32,
-        neutral_draw_pile: HashMap<CardColor, (CardValue, u8)>,
+        neutral_draw_pile: HashMap<CardColor, (CardValue, usize)>,
         draw_pile_cards_remaining: usize
     ) -> Self {
         GameBoard {
@@ -108,7 +108,7 @@ impl GameBoard {
         &self.p2_score
     }
 
-    pub fn neutral_draw_pile(&self) -> &HashMap<CardColor, (CardValue, u8)> {
+    pub fn neutral_draw_pile(&self) -> &HashMap<CardColor, (CardValue, usize)> {
         &self.neutral_draw_pile
     }
 
