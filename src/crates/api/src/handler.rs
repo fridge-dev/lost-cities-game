@@ -1,5 +1,5 @@
 use crate::GameApi;
-use types::{GameError, GameState, Play, Card, Cause, GameBoard};
+use types::{GameError, GameState, Play, Card, Cause, GameBoard, CardTarget, CardColor, CardValue, Reason, DrawPile};
 use storage::storage_types::{StorageGameMetadata, GameStatus, StorageError, StorageGameState};
 use storage::storage_api::GameStore;
 use storage::local_storage::LocalStore;
@@ -44,8 +44,8 @@ impl GameApiHandler {
         let mut p1_hand: Vec<Card> = Vec::with_capacity(8);
         let mut p2_hand: Vec<Card> = Vec::with_capacity(8);
         for _ in 0..8 {
-            p1_hand.push(deck.pop().unwrap());
-            p2_hand.push(deck.pop().unwrap());
+            p1_hand.push(deck.pop().ok_or_else(|| GameError::Internal(Cause::Impossible))?);
+            p2_hand.push(deck.pop().ok_or_else(|| GameError::Internal(Cause::Impossible))?);
         }
 
         let game_state = StorageGameState::new(
@@ -116,17 +116,22 @@ impl GameApi for GameApiHandler {
     fn get_game_state(&self, game_id: &str, player_id: &str) -> Result<GameState, GameError> {
         let (storage_game_state, is_player_1) = self.load_game(game_id, player_id)?;
 
-        let game_state = convert_game_state(is_player_1, storage_game_state);
+        let game_state = convert_game_state(storage_game_state, is_player_1);
 
         return Ok(game_state);
     }
 
-    fn play_card(&self, play: Play) -> Result<(), GameError> {
-        unimplemented!()
+    fn play_card(&mut self, play: Play) -> Result<(), GameError> {
+        let (mut storage_game_state, is_player_1) = self.load_game(play.game_id(), play.player_id())?;
+
+        apply_play_to_game_state(play, &mut storage_game_state, is_player_1);
+
+        self.storage.update_game_state(storage_game_state)
+            .map_err(|e| GameError::Internal(Cause::Storage("Failed to save the updated game state", Box::new(e))))
     }
 }
 
-// ================ private, static (stateless) methods related to GameHandlerImpl ==================
+// ================ private, static (stateless) methods related to GameHandlerImpl =================
 
 fn create_game_id() -> String {
     // random hex string
@@ -138,7 +143,7 @@ fn is_first_turn_p1() -> bool {
 }
 
 // Expensive cloning incoming... :P
-fn convert_game_state(is_player_1: bool, storage_game_state: StorageGameState) -> GameState {
+fn convert_game_state(storage_game_state: StorageGameState, is_player_1: bool) -> GameState {
     // Here is where we only show what the player is allowed to see.
     let mut concealed_neutral_draw_pile = HashMap::new();
     for (color, value_vec) in storage_game_state.neutral_draw_pile().iter() {
@@ -154,24 +159,153 @@ fn convert_game_state(is_player_1: bool, storage_game_state: StorageGameState) -
         0,
         0,
         concealed_neutral_draw_pile,
-        storage_game_state.draw_pile_cards_remaining().len(),
+        storage_game_state.main_draw_pile().len(),
     );
 
-    let (my_hand, is_my_turn) = if is_player_1 {
+    let (my_hand, my_previous_plays, is_my_turn) = get_players_info(&storage_game_state, is_player_1);
+
+    GameState::new(
+        game_board,
+        plays::decorate_hand(my_hand.to_owned(), my_previous_plays),
+        is_my_turn
+    )
+}
+
+/// Extract the player-specific info from the storage state, based on the player making the backend request.
+fn get_players_info(
+    storage_game_state: &StorageGameState,
+    is_player_1: bool
+) -> (
+    &Vec<Card>, /* player's hand */
+    &HashMap<CardColor, Vec<CardValue>>, /* player's previous plays */
+    bool, /* is player's turn */
+) {
+    if is_player_1 {
         (
-            plays::decorate_hand(storage_game_state.p1_hand().to_owned(), storage_game_state.p1_plays()),
+            storage_game_state.p1_hand(),
+            storage_game_state.p1_plays(),
             *storage_game_state.p1_turn()
         )
     } else {
         (
-            plays::decorate_hand(storage_game_state.p2_hand().to_owned(), storage_game_state.p2_plays()),
+            storage_game_state.p2_hand(),
+            storage_game_state.p2_plays(),
             !*storage_game_state.p1_turn()
         )
+    }
+}
+
+fn get_players_info_mut(
+    storage_game_state: &mut StorageGameState,
+    is_player_1: bool
+) -> (
+    &mut Vec<Card>, /* player's hand */
+    &mut HashMap<CardColor, Vec<CardValue>>, /* player's previous plays */
+    bool, /* is player's turn */
+) {
+    if is_player_1 {
+        (
+            storage_game_state.p1_hand_mut(),
+            storage_game_state.p1_plays_mut(),
+            *storage_game_state.p1_turn()
+        )
+    } else {
+        (
+            storage_game_state.p2_hand_mut(),
+            storage_game_state.p2_plays_mut(),
+            !*storage_game_state.p1_turn()
+        )
+    }
+}
+
+fn apply_play_to_game_state(
+    play: Play,
+    mut storage_game_state: &mut StorageGameState,
+    is_player_1: bool
+) -> Result<(), GameError> {
+
+    let (my_hand, my_previous_plays, is_my_turn) = get_players_info_mut(&mut storage_game_state, is_player_1);
+
+    let card_in_hand_index = validate_play(
+        &play,
+        &storage_game_state,
+        &my_hand,
+        &my_previous_plays,
+        is_my_turn
+    ).map_err(|e| GameError::InvalidPlay(e))?;
+
+    // Model a turn like in real life:
+
+    // 1. Remove the card from hand
+    let _removed_card = my_hand.remove(card_in_hand_index);
+
+    // 2. Add card on top of target pile
+    let target_pile = match play.target() {
+        CardTarget::Player => my_previous_plays,
+        CardTarget::Neutral => storage_game_state.neutral_draw_pile_mut(),
     };
 
-    GameState::new(
-        game_board,
-        my_hand,
-        is_my_turn
-    )
+    target_pile.entry(*play.card().card_color())
+        .or_insert_with(|| Vec::new())
+        .push(*play.card().card_value());
+
+    // 3. Draw new card
+    let new_card_opt = match play.draw_pile() {
+        DrawPile::Main => storage_game_state.main_draw_pile_mut().pop(),
+        DrawPile::Neutral(color) => {
+            storage_game_state.neutral_draw_pile_mut()
+                .get_mut(color)
+                .and_then(|draw_pile| draw_pile.pop())
+                .map(|drawn_value| Card::new(*color, drawn_value))
+        }
+    };
+    let new_card = new_card_opt.ok_or_else(|| GameError::Internal(Cause::Impossible))?;
+    my_hand.push(new_card);
+
+    // 4. Flip the turn marker
+    storage_game_state.swap_turn();
+
+    Ok(())
+}
+
+fn validate_play(
+    play: &Play,
+    storage_game_state: &StorageGameState,
+    my_hand: &Vec<Card>,
+    my_previous_plays: &HashMap<CardColor, Vec<CardValue>>,
+    is_my_turn: bool
+) -> Result<usize, Reason> {
+
+    // RULE: You can only play on your turn.
+    if !is_my_turn {
+        return Err(Reason::NotYourTurn);
+    }
+
+    // RULE: You can only play cards that are in your hand.
+    let card_in_hand_index = my_hand.iter()
+        .position(|card| card == play.card())
+        .ok_or_else(|| Reason::CardNotInHand)?;
+
+    // RULE: You must play cards in increasing order.
+    if *play.target() == CardTarget::Player && !plays::is_card_playable(play.card(), my_previous_plays) {
+        return Err(Reason::CantPlayDecreasingCardValue);
+    }
+
+    if let DrawPile::Neutral(color_to_draw) = play.draw_pile() {
+        // RULE: You can't redraw the same card you just played.
+        if *play.target() == CardTarget::Neutral && color_to_draw == play.card().card_color() {
+            return Err(Reason::CantRedrawCardJustPlayed);
+        }
+
+        // RULE: You can't draw from an empty pile.
+        let neutral_draw_pile_size = storage_game_state.neutral_draw_pile()
+            .get(color_to_draw)
+            .map(|vec| vec.len())
+            .unwrap_or(0);
+        if neutral_draw_pile_size == 0 {
+            return Err(Reason::NeutralDrawPileEmpty);
+        }
+    }
+
+    return Ok(card_in_hand_index);
 }

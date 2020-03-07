@@ -78,7 +78,7 @@ pub struct StorageGameState {
     p2_plays: HashMap<CardColor, Vec<CardValue>>,
 
     neutral_draw_pile: HashMap<CardColor, Vec<CardValue>>,
-    draw_pile_cards_remaining: Vec<Card>,
+    main_draw_pile: Vec<Card>,
 
     p1_turn: bool,
 }
@@ -91,7 +91,7 @@ impl StorageGameState {
         p1_plays: HashMap<CardColor, Vec<CardValue>>,
         p2_plays: HashMap<CardColor, Vec<CardValue>>,
         neutral_draw_pile: HashMap<CardColor, Vec<CardValue>>,
-        draw_pile_cards_remaining: Vec<Card>,
+        main_draw_pile: Vec<Card>,
         p1_turn: bool
     ) -> Self {
         StorageGameState {
@@ -101,7 +101,7 @@ impl StorageGameState {
             p1_plays,
             p2_plays,
             neutral_draw_pile,
-            draw_pile_cards_remaining,
+            main_draw_pile,
             p1_turn
         }
     }
@@ -114,28 +114,56 @@ impl StorageGameState {
         &self.p1_hand
     }
 
+    pub fn p1_hand_mut(&mut self) -> &mut Vec<Card> {
+        &mut self.p1_hand
+    }
+
     pub fn p2_hand(&self) -> &Vec<Card> {
         &self.p2_hand
+    }
+
+    pub fn p2_hand_mut(&mut self) -> &mut Vec<Card> {
+        &mut self.p2_hand
     }
 
     pub fn p1_plays(&self) -> &HashMap<CardColor, Vec<CardValue>> {
         &self.p1_plays
     }
 
+    pub fn p1_plays_mut(&mut self) -> &mut HashMap<CardColor, Vec<CardValue>> {
+        &mut self.p1_plays
+    }
+
     pub fn p2_plays(&self) -> &HashMap<CardColor, Vec<CardValue>> {
         &self.p2_plays
+    }
+
+    pub fn p2_plays_mut(&mut self) -> &mut HashMap<CardColor, Vec<CardValue>> {
+        &mut self.p2_plays
     }
 
     pub fn neutral_draw_pile(&self) -> &HashMap<CardColor, Vec<CardValue>> {
         &self.neutral_draw_pile
     }
 
-    pub fn draw_pile_cards_remaining(&self) -> &Vec<Card> {
-        &self.draw_pile_cards_remaining
+    pub fn neutral_draw_pile_mut(&mut self) -> &mut HashMap<CardColor, Vec<CardValue>> {
+        &mut self.neutral_draw_pile
+    }
+
+    pub fn main_draw_pile(&self) -> &Vec<Card> {
+        &self.main_draw_pile
+    }
+
+    pub fn main_draw_pile_mut(&mut self) -> &mut Vec<Card> {
+        &mut self.main_draw_pile
     }
 
     pub fn p1_turn(&self) -> &bool {
         &self.p1_turn
+    }
+
+    pub fn swap_turn(&mut self) {
+        self.p1_turn = !self.p1_turn
     }
 }
 

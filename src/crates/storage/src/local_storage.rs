@@ -25,6 +25,9 @@ impl LocalStore {
 /// this won't accurately reflect the target end state, which is the game's storage being backed by an
 /// external DB. So we'll code our interfaces to the target end state and deal with the slight inefficiency
 /// in the mean time.
+///
+/// Read methods return clones of the storage's data, so callers can freely mutate the returned data without
+/// corrupting the storage.
 impl GameStore for LocalStore {
 
     fn create_game_metadata(&mut self, game_metadata: StorageGameMetadata) -> Result<(), StorageError> {

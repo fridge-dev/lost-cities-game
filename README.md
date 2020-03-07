@@ -42,9 +42,9 @@ Just putting this here, for now.
 ### Planned
 
 **Backend**
-1. Add rules engine
-1. Implement scoring
-1. Implement updating based on a turn
+1. Rules: updating based on a turn
+1. Rules: scoring
+1. Rules: handle end game
 1. Implement backend with file storage
 1. Figure out nio task model for backend
 
@@ -67,3 +67,4 @@ Just putting this here, for now.
 1. Integrate API into storage
 1. GetState for viewing player
 1. Fully implement GetGameState API
+1. Add rules engine

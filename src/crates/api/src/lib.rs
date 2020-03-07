@@ -21,7 +21,7 @@ pub trait GameApi {
     fn get_game_state(&self, game_id: &str, player_id: &str) -> Result<GameState, GameError>;
 
     /// Make a turn. Should call get_game_state() after this. Maybe not needed? Idk yet.
-    fn play_card(&self, play: Play) -> Result<(), GameError>;
+    fn play_card(&mut self, play: Play) -> Result<(), GameError>;
 }
 
 // Does this mean every call from main to API will incur the cost of a v-lookup table query?

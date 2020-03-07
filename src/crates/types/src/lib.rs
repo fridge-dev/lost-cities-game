@@ -294,6 +294,7 @@ pub struct Play<'a> {
     player_id: &'a str,
     card: &'a Card,
     target: &'a CardTarget,
+    draw_pile: DrawPile,
 }
 
 impl<'a> Play<'a> {
@@ -302,12 +303,14 @@ impl<'a> Play<'a> {
         player_id: &'a str,
         card: &'a Card,
         target: &'a CardTarget,
+        draw_pile: DrawPile,
     ) -> Play<'a> {
         Play {
             game_id,
             player_id,
             card,
             target,
+            draw_pile,
         }
     }
 
@@ -326,23 +329,62 @@ impl<'a> Play<'a> {
     pub fn target(&self) -> &CardTarget {
         self.target
     }
+
+    pub fn draw_pile(&self) -> &DrawPile {
+        &self.draw_pile
+    }
 }
 
+/// Where to *play* a card.
+#[derive(PartialEq, Eq)]
 pub enum CardTarget {
     Player,
     Neutral,
 }
 
+/// Where to draw the new card from.
+#[derive(PartialEq, Eq)]
+pub enum DrawPile {
+    Main,
+    Neutral(CardColor),
+}
+
+// Naming starts to get confusing here... GL future me!
 #[derive(Debug)]
 pub enum GameError {
     Internal(Cause),
     NotFound(&'static str),
-    GameAlreadyMatched
+    GameAlreadyMatched,
+    InvalidPlay(Reason),
 }
 
+/// Causes of `GameError::Internal` errors.
 #[derive(Debug)]
 pub enum Cause {
+    /// Error caused by internal/dependency storage layer
     Storage(&'static str, Box<dyn Error>),
+    /// Error caused by some impossible circumstance, but an error is needed for rust code to compile.
+    ///
+    /// Example:
+    /// ```
+    /// use types::{GameError, Cause};
+    /// let mut v = vec![1, 2, 3];
+    /// let first = v.pop().ok_or(GameError::Internal(Cause::Impossible));
+    /// ```
+    ///
+    /// I truly expect this to never happen. #FamousLastWords
+    Impossible,
+}
+
+// These may end up being my way of educating new users to the rules of the game. Consider giving this
+// a really descriptive Display impl.
+#[derive(Debug)]
+pub enum Reason {
+    NotYourTurn,
+    CardNotInHand,
+    CantPlayDecreasingCardValue,
+    NeutralDrawPileEmpty,
+    CantRedrawCardJustPlayed,
 }
 
 impl Error for GameError {}
@@ -353,6 +395,7 @@ impl Display for GameError {
             GameError::NotFound(entity) => f.write_str(&format!("{} not found!", entity)),
             GameError::Internal(cause) => f.write_str(&format!("Unexpected error: {:?}", cause)),
             GameError::GameAlreadyMatched => f.write_str("No room for u."),
+            GameError::InvalidPlay(reason) => f.write_str(&format!("You cannot make that play: {:?}", reason)),
         }
     }
 }
