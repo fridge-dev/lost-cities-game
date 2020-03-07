@@ -10,7 +10,7 @@ pub fn decorate_hand(hand: Vec<Card>, previous_plays: &HashMap<CardColor, Vec<Ca
 }
 
 /// Consider moving this to UT utility, if that's the only place it's used.
-pub fn get_allowed_plays(
+fn get_allowed_plays(
     hand: &Vec<Card>,
     previous_plays: &HashMap<CardColor, Vec<CardValue>>
 ) -> Vec<usize> {

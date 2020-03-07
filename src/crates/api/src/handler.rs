@@ -5,7 +5,7 @@ use storage::storage_api::GameStore;
 use storage::local_storage::LocalStore;
 use rules::deck::DeckFactory;
 use std::collections::HashMap;
-use rules::plays::decorate_hand;
+use rules::plays;
 
 pub struct GameApiHandler {
     storage: Box<dyn GameStore>,
@@ -62,6 +62,32 @@ impl GameApiHandler {
         self.storage.create_game_state(game_state)
             .map_err(|e| GameError::Internal(Cause::Storage("Failed to save initial game state", Box::new(e))))
     }
+
+    fn load_game(&self, game_id: &str, player_id: &str) -> Result<(StorageGameState, bool), GameError> {
+        let metadata = self.storage.load_game_metadata(game_id)
+            .map_err(|e| match e {
+                StorageError::NotFound => GameError::NotFound("Game metadata"),
+                _ => GameError::Internal(Cause::Storage("Failed to load game", Box::new(e)))
+            })?;
+
+        let is_player_1 = if player_id == metadata.p1_id() {
+            true
+        } else if player_id == metadata.p2_id() {
+            false
+        } else {
+            return Err(GameError::NotFound("Player in game"));
+        };
+
+        let storage_game_state = self.storage.load_game_state(game_id)
+            .map_err(|e| match e {
+                StorageError::NotFound => GameError::NotFound("Game state"),
+                _ => GameError::Internal(Cause::Storage("Failed to load game state.", Box::new(e))),
+            })?;
+
+        println!("DEBUG: Loaded game state: {:?}", storage_game_state);
+
+        Ok((storage_game_state, is_player_1))
+    }
 }
 
 impl GameApi for GameApiHandler {
@@ -88,65 +114,9 @@ impl GameApi for GameApiHandler {
     }
 
     fn get_game_state(&self, game_id: &str, player_id: &str) -> Result<GameState, GameError> {
-        let metadata = self.storage.load_game_metadata(game_id)
-            .map_err(|e| match e {
-                StorageError::NotFound => GameError::NotFound("Game metadata"),
-                _ => GameError::Internal(Cause::Storage("Failed to load game", Box::new(e)))
-            })?;
+        let (storage_game_state, is_player_1) = self.load_game(game_id, player_id)?;
 
-        let is_player_1 = if player_id == metadata.p1_id() {
-            true
-        } else if player_id == metadata.p2_id() {
-            false
-        } else {
-            return Err(GameError::NotFound("Player in game"));
-        };
-
-        let storage_game_state = self.storage.load_game_state(game_id)
-            .map_err(|e| match e {
-                StorageError::NotFound => GameError::NotFound("Game state"),
-                _ => GameError::Internal(Cause::Storage("Failed to load game state.", Box::new(e))),
-            })?;
-
-        println!("DEBUG: Loaded game state: {:?}", storage_game_state);
-
-        // Expensive cloning incoming... :P
-
-        // Here is where we only show what the player is allowed to see.
-        let mut concealed_neutral_draw_pile = HashMap::new();
-        for (color, value_vec) in storage_game_state.neutral_draw_pile().iter() {
-            if let Some(top_card) = value_vec.last() {
-                concealed_neutral_draw_pile.insert(*color, (*top_card, value_vec.len()));
-            }
-        }
-
-        let game_board = GameBoard::new(
-            storage_game_state.p1_plays().to_owned(),
-            storage_game_state.p2_plays().to_owned(),
-            // TODO implement scoring
-            0,
-            0,
-            concealed_neutral_draw_pile,
-            storage_game_state.draw_pile_cards_remaining().len(),
-        );
-
-        let (my_hand, is_my_turn) = if is_player_1 {
-            (
-                decorate_hand(storage_game_state.p1_hand().to_owned(), storage_game_state.p1_plays()),
-                *storage_game_state.p1_turn()
-            )
-        } else {
-            (
-                decorate_hand(storage_game_state.p2_hand().to_owned(), storage_game_state.p2_plays()),
-                !*storage_game_state.p1_turn()
-            )
-        };
-
-        let game_state = GameState::new(
-            game_board,
-            my_hand,
-            is_my_turn
-        );
+        let game_state = convert_game_state(is_player_1, storage_game_state);
 
         return Ok(game_state);
     }
@@ -156,6 +126,8 @@ impl GameApi for GameApiHandler {
     }
 }
 
+// ================ private, static (stateless) methods related to GameHandlerImpl ==================
+
 fn create_game_id() -> String {
     // random hex string
     format!("{:x}", rand::random::<u128>())
@@ -163,4 +135,43 @@ fn create_game_id() -> String {
 
 fn is_first_turn_p1() -> bool {
     rand::random()
+}
+
+// Expensive cloning incoming... :P
+fn convert_game_state(is_player_1: bool, storage_game_state: StorageGameState) -> GameState {
+    // Here is where we only show what the player is allowed to see.
+    let mut concealed_neutral_draw_pile = HashMap::new();
+    for (color, value_vec) in storage_game_state.neutral_draw_pile().iter() {
+        if let Some(top_card) = value_vec.last() {
+            concealed_neutral_draw_pile.insert(*color, (*top_card, value_vec.len()));
+        }
+    }
+
+    let game_board = GameBoard::new(
+        storage_game_state.p1_plays().to_owned(),
+        storage_game_state.p2_plays().to_owned(),
+        // TODO implement scoring
+        0,
+        0,
+        concealed_neutral_draw_pile,
+        storage_game_state.draw_pile_cards_remaining().len(),
+    );
+
+    let (my_hand, is_my_turn) = if is_player_1 {
+        (
+            plays::decorate_hand(storage_game_state.p1_hand().to_owned(), storage_game_state.p1_plays()),
+            *storage_game_state.p1_turn()
+        )
+    } else {
+        (
+            plays::decorate_hand(storage_game_state.p2_hand().to_owned(), storage_game_state.p2_plays()),
+            !*storage_game_state.p1_turn()
+        )
+    };
+
+    GameState::new(
+        game_board,
+        my_hand,
+        is_my_turn
+    )
 }
