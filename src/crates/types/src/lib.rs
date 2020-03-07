@@ -34,14 +34,14 @@ impl GameMetadata {
 #[derive(Debug)]
 pub struct GameState {
     game_board: GameBoard,
-    my_hand: Vec<Card>,
+    my_hand: Vec<DecoratedCard>,
     is_my_turn: bool,
 }
 
 impl GameState {
     pub fn new(
         game_board: GameBoard,
-        my_hand: Vec<Card>,
+        my_hand: Vec<DecoratedCard>,
         is_my_turn: bool
     ) -> Self {
         GameState {
@@ -55,7 +55,7 @@ impl GameState {
         &self.game_board
     }
 
-    pub fn my_hand(&self) -> &Vec<Card> {
+    pub fn my_hand(&self) -> &Vec<DecoratedCard> {
         &self.my_hand
     }
 
@@ -138,6 +138,33 @@ fn fmt_hash_map<K: Debug, V: Debug>(map: &HashMap<K, V>) -> String {
         v.push(format!("{:?}: {:?}", &key, &val));
     }
     format!("HashMap {{ {} }}", v.join(", "))
+}
+
+/// DecoratedCard is basically the API layer's representation of a "Card" and the
+/// Card struct below is the storage layer's representation of a Card.
+///
+/// Maybe I should change/move the definitions to be as such? Maybe later...
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub struct DecoratedCard {
+    card: Card,
+    is_playable: bool,
+}
+
+impl DecoratedCard {
+    pub fn new(card: Card, is_playable: bool) -> Self {
+        DecoratedCard {
+            card,
+            is_playable,
+        }
+    }
+
+    pub fn card(&self) -> &Card {
+        &self.card
+    }
+
+    pub fn is_playable(&self) -> &bool {
+        &self.is_playable
+    }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]

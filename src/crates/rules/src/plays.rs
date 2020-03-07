@@ -1,13 +1,22 @@
-use types::{Card, CardColor, CardValue};
+/// "Plays" is a module for encapsulating all logic for determining what you are allowed to do in your turn.
+/// E.g. *playing* a card, drawing a card.
+use types::{Card, CardColor, CardValue, DecoratedCard};
 use std::collections::HashMap;
 
+pub fn decorate_hand(hand: Vec<Card>, previous_plays: &HashMap<CardColor, Vec<CardValue>>) -> Vec<DecoratedCard> {
+    hand.iter()
+        .map(|card| DecoratedCard::new(*card, is_card_playable(card, previous_plays)))
+        .collect()
+}
+
+/// Consider moving this to UT utility, if that's the only place it's used.
 pub fn get_allowed_plays(
     hand: &Vec<Card>,
     previous_plays: &HashMap<CardColor, Vec<CardValue>>
 ) -> Vec<usize> {
     let mut allowed_indexes = Vec::new();
     for (i, card_in_hand) in hand.iter().enumerate() {
-        if is_play_allowed(card_in_hand, previous_plays) {
+        if is_card_playable(card_in_hand, previous_plays) {
             allowed_indexes.push(i);
         }
     }
@@ -15,7 +24,7 @@ pub fn get_allowed_plays(
     return allowed_indexes;
 }
 
-fn is_play_allowed(
+pub fn is_card_playable(
     attempted_play: &Card,
     previous_plays: &HashMap<CardColor, Vec<CardValue>>
 ) -> bool {

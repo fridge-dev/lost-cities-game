@@ -5,6 +5,7 @@ use storage::storage_api::GameStore;
 use storage::local_storage::LocalStore;
 use rules::deck::DeckFactory;
 use std::collections::HashMap;
+use rules::plays::decorate_hand;
 
 pub struct GameApiHandler {
     storage: Box<dyn GameStore>,
@@ -130,14 +131,20 @@ impl GameApi for GameApiHandler {
         );
 
         let (my_hand, is_my_turn) = if is_player_1 {
-            (storage_game_state.p1_hand(), *storage_game_state.p1_turn())
+            (
+                decorate_hand(storage_game_state.p1_hand().to_owned(), storage_game_state.p1_plays()),
+                *storage_game_state.p1_turn()
+            )
         } else {
-            (storage_game_state.p2_hand(), !*storage_game_state.p1_turn())
+            (
+                decorate_hand(storage_game_state.p2_hand().to_owned(), storage_game_state.p2_plays()),
+                !*storage_game_state.p1_turn()
+            )
         };
 
         let game_state = GameState::new(
             game_board,
-            my_hand.to_owned(),
+            my_hand,
             is_my_turn
         );
 
