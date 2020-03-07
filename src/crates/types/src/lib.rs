@@ -154,6 +154,11 @@ impl Card {
         }
     }
 
+    /// This method is probably only for UT readability. Not sure where is the best place to put such methods.
+    pub fn from_int(card_color: CardColor, card_value: u8) -> Self {
+        Card::new(card_color, CardValue::from_int(card_value))
+    }
+
     pub fn card_color(&self) -> &CardColor {
         &self.card_color
     }
@@ -172,9 +177,9 @@ pub enum CardColor {
     Yellow,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum CardValue {
-    Wager,
+    Wager = 0,
     Two,
     Three,
     Four,
@@ -184,6 +189,25 @@ pub enum CardValue {
     Eight,
     Nine,
     Ten,
+}
+
+impl CardValue {
+    /// This method is probably only for UT readability. Not sure where is the best place to put such methods.
+    pub fn from_int(card_value: u8) -> Self {
+        match card_value {
+            1 => CardValue::Wager,
+            2 => CardValue::Two,
+            3 => CardValue::Three,
+            4 => CardValue::Four,
+            5 => CardValue::Five,
+            6 => CardValue::Six,
+            7 => CardValue::Seven,
+            8 => CardValue::Eight,
+            9 => CardValue::Nine,
+            10 => CardValue::Ten,
+            _ => panic!(format!("Illegal card value supplied: {}", card_value)),
+        }
+    }
 }
 
 mod rand_utils {
@@ -303,13 +327,5 @@ impl Display for GameError {
             GameError::Internal(cause) => f.write_str(&format!("Unexpected error: {:?}", cause)),
             GameError::GameAlreadyMatched => f.write_str("No room for u."),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
     }
 }
