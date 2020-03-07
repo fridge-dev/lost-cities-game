@@ -293,7 +293,7 @@ pub struct Play<'a> {
     game_id: &'a str,
     player_id: &'a str,
     card: &'a Card,
-    target: &'a CardTarget,
+    target: CardTarget,
     draw_pile: DrawPile,
 }
 
@@ -302,7 +302,7 @@ impl<'a> Play<'a> {
         game_id: &'a str,
         player_id: &'a str,
         card: &'a Card,
-        target: &'a CardTarget,
+        target: CardTarget,
         draw_pile: DrawPile,
     ) -> Play<'a> {
         Play {
@@ -327,7 +327,7 @@ impl<'a> Play<'a> {
     }
 
     pub fn target(&self) -> &CardTarget {
-        self.target
+        &self.target
     }
 
     pub fn draw_pile(&self) -> &DrawPile {

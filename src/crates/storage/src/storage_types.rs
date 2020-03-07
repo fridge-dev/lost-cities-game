@@ -165,6 +165,81 @@ impl StorageGameState {
     pub fn swap_turn(&mut self) {
         self.p1_turn = !self.p1_turn
     }
+
+    pub fn convert_to_player_aware(self, is_player_1: bool) -> PlayerAwareStorageGameState {
+        PlayerAwareStorageGameState {
+            inner: self,
+            is_player_1
+        }
+    }
+}
+
+pub struct PlayerAwareStorageGameState {
+    inner: StorageGameState,
+    is_player_1: bool,
+}
+
+impl PlayerAwareStorageGameState {
+
+    pub fn inner(&self) -> &StorageGameState {
+        &self.inner
+    }
+
+    pub fn my_hand(&self) -> &Vec<Card> {
+        if self.is_player_1 {
+            &self.inner.p1_hand
+        } else {
+            &self.inner.p2_hand
+        }
+    }
+
+    pub fn my_hand_mut(&mut self) -> &mut Vec<Card> {
+        if self.is_player_1 {
+            &mut self.inner.p1_hand
+        } else {
+            &mut self.inner.p2_hand
+        }
+    }
+
+    pub fn my_plays(&self) -> &HashMap<CardColor, Vec<CardValue>> {
+        if self.is_player_1 {
+            &self.inner.p1_plays
+        } else {
+            &self.inner.p2_plays
+        }
+    }
+
+    pub fn my_plays_mut(&mut self) -> &mut HashMap<CardColor, Vec<CardValue>> {
+        if self.is_player_1 {
+            &mut self.inner.p1_plays
+        } else {
+            &mut self.inner.p2_plays
+        }
+    }
+
+    pub fn is_my_turn(&self) -> bool {
+        self.is_player_1 ^ self.inner.p1_turn
+    }
+
+    pub fn neutral_draw_pile(&self) -> &HashMap<CardColor, Vec<CardValue>> {
+        &self.inner.neutral_draw_pile
+    }
+
+    pub fn neutral_draw_pile_mut(&mut self) -> &mut HashMap<CardColor, Vec<CardValue>> {
+        &mut self.inner.neutral_draw_pile
+    }
+
+    pub fn main_draw_pile(&self) -> &Vec<Card> {
+        &self.inner.main_draw_pile
+    }
+
+    pub fn main_draw_pile_mut(&mut self) -> &mut Vec<Card> {
+        &mut self.inner.main_draw_pile
+    }
+
+    pub fn convert_to_inner(self) -> StorageGameState {
+        self.inner
+    }
 }
 
 #[derive(Debug, PartialEq)]

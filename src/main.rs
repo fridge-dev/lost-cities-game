@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::{io, process};
-use types::{Play, Card, CardColor, CardValue, CardTarget};
+use types::{Play, Card, CardColor, CardValue, CardTarget, DrawPile};
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!("Hello, world!");
@@ -45,7 +45,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             &game_id,
             &current_player_id,
             &Card::new(CardColor::White, CardValue::Seven),
-            &CardTarget::Player
+            CardTarget::Player,
+            DrawPile::Main,
         ))?;
     }
 

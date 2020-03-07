@@ -122,11 +122,11 @@ impl GameApi for GameApiHandler {
     }
 
     fn play_card(&mut self, play: Play) -> Result<(), GameError> {
-        let (mut storage_game_state, is_player_1) = self.load_game(play.game_id(), play.player_id())?;
+        let (storage_game_state, is_player_1) = self.load_game(play.game_id(), play.player_id())?;
 
-        apply_play_to_game_state(play, &mut storage_game_state, is_player_1);
+        let updated_game_state = apply_play_to_game_state(play, storage_game_state, is_player_1)?;
 
-        self.storage.update_game_state(storage_game_state)
+        self.storage.update_game_state(updated_game_state)
             .map_err(|e| GameError::Internal(Cause::Storage("Failed to save the updated game state", Box::new(e))))
     }
 }
@@ -195,54 +195,32 @@ fn get_players_info(
     }
 }
 
-fn get_players_info_mut(
-    storage_game_state: &mut StorageGameState,
-    is_player_1: bool
-) -> (
-    &mut Vec<Card>, /* player's hand */
-    &mut HashMap<CardColor, Vec<CardValue>>, /* player's previous plays */
-    bool, /* is player's turn */
-) {
-    if is_player_1 {
-        (
-            storage_game_state.p1_hand_mut(),
-            storage_game_state.p1_plays_mut(),
-            *storage_game_state.p1_turn()
-        )
-    } else {
-        (
-            storage_game_state.p2_hand_mut(),
-            storage_game_state.p2_plays_mut(),
-            !*storage_game_state.p1_turn()
-        )
-    }
-}
-
 fn apply_play_to_game_state(
     play: Play,
-    mut storage_game_state: &mut StorageGameState,
+    storage_game_state: StorageGameState,
     is_player_1: bool
-) -> Result<(), GameError> {
+) -> Result<StorageGameState, GameError> {
 
-    let (my_hand, my_previous_plays, is_my_turn) = get_players_info_mut(&mut storage_game_state, is_player_1);
+    let pa_sgs = storage_game_state.convert_to_player_aware(is_player_1);
 
     let card_in_hand_index = validate_play(
         &play,
-        &storage_game_state,
-        &my_hand,
-        &my_previous_plays,
-        is_my_turn
+        pa_sgs.my_hand(),
+        pa_sgs.my_plays(),
+        pa_sgs.inner().neutral_draw_pile(),
+        pa_sgs.is_my_turn()
     ).map_err(|e| GameError::InvalidPlay(e))?;
 
+    let mut pa_sgs = pa_sgs;
     // Model a turn like in real life:
 
     // 1. Remove the card from hand
-    let _removed_card = my_hand.remove(card_in_hand_index);
+    let _removed_card = pa_sgs.my_hand_mut().remove(card_in_hand_index);
 
     // 2. Add card on top of target pile
     let target_pile = match play.target() {
-        CardTarget::Player => my_previous_plays,
-        CardTarget::Neutral => storage_game_state.neutral_draw_pile_mut(),
+        CardTarget::Player => pa_sgs.my_plays_mut(),
+        CardTarget::Neutral => pa_sgs.neutral_draw_pile_mut(),
     };
 
     target_pile.entry(*play.card().card_color())
@@ -251,28 +229,29 @@ fn apply_play_to_game_state(
 
     // 3. Draw new card
     let new_card_opt = match play.draw_pile() {
-        DrawPile::Main => storage_game_state.main_draw_pile_mut().pop(),
+        DrawPile::Main => pa_sgs.main_draw_pile_mut().pop(),
         DrawPile::Neutral(color) => {
-            storage_game_state.neutral_draw_pile_mut()
+            pa_sgs.neutral_draw_pile_mut()
                 .get_mut(color)
                 .and_then(|draw_pile| draw_pile.pop())
                 .map(|drawn_value| Card::new(*color, drawn_value))
         }
     };
     let new_card = new_card_opt.ok_or_else(|| GameError::Internal(Cause::Impossible))?;
-    my_hand.push(new_card);
+    pa_sgs.my_hand_mut().push(new_card);
 
     // 4. Flip the turn marker
-    storage_game_state.swap_turn();
+    let mut sgs = pa_sgs.convert_to_inner();
+    sgs.swap_turn();
 
-    Ok(())
+    Ok(sgs)
 }
 
 fn validate_play(
     play: &Play,
-    storage_game_state: &StorageGameState,
     my_hand: &Vec<Card>,
     my_previous_plays: &HashMap<CardColor, Vec<CardValue>>,
+    neutral_draw_pile: &HashMap<CardColor, Vec<CardValue>>,
     is_my_turn: bool
 ) -> Result<usize, Reason> {
 
@@ -298,7 +277,7 @@ fn validate_play(
         }
 
         // RULE: You can't draw from an empty pile.
-        let neutral_draw_pile_size = storage_game_state.neutral_draw_pile()
+        let neutral_draw_pile_size = neutral_draw_pile
             .get(color_to_draw)
             .map(|vec| vec.len())
             .unwrap_or(0);
