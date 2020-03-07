@@ -218,7 +218,7 @@ impl PlayerAwareStorageGameState {
     }
 
     pub fn is_my_turn(&self) -> bool {
-        self.is_player_1 ^ self.inner.p1_turn
+        self.is_player_1 ^ !self.inner.p1_turn
     }
 
     pub fn neutral_draw_pile(&self) -> &HashMap<CardColor, Vec<CardValue>> {
