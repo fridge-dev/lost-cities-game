@@ -206,7 +206,7 @@ pub enum CardColor {
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum CardValue {
-    Wager = 0,
+    Wager,
     Two,
     Three,
     Four,
@@ -237,13 +237,13 @@ impl CardValue {
     }
 }
 
+/// TODO This is only needed for UTs ... Find a suitable replacement or remove this comment if this is really the best.
 mod rand_utils {
     use rand::{
         distributions::{Distribution, Standard},
         Rng,
     };
     use crate::{Card, CardColor, CardValue};
-
 
     impl Distribution<Card> for Standard {
         fn sample<R: Rng + ?Sized>(&self, _rng: &mut R) -> Card {
@@ -361,8 +361,10 @@ pub enum GameError {
 /// Causes of `GameError::Internal` errors.
 #[derive(Debug)]
 pub enum Cause {
+
     /// Error caused by internal/dependency storage layer
     Storage(&'static str, Box<dyn Error>),
+
     /// Error caused by some impossible circumstance, but an error is needed for rust code to compile.
     ///
     /// Example:
