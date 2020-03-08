@@ -42,7 +42,6 @@ Just putting this here, for now.
 ### Planned
 
 **Backend**
-1. Rules: updating based on a turn
 1. Rules: scoring
 1. Rules: handle end game
 1. Implement backend with file storage
@@ -50,7 +49,6 @@ Just putting this here, for now.
 
 **Frontend**
 1. Implement main.rs state machine (turns, end game)
-1. Implement main.rs user turn selection I/O
 1. Implement main.rs board drawer
 
 **General**
@@ -68,3 +66,5 @@ Just putting this here, for now.
 1. GetState for viewing player
 1. Fully implement GetGameState API
 1. Add rules engine
+1. Rules: updating based on a turn
+1. Implement main.rs user turn selection I/O
