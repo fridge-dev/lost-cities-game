@@ -235,9 +235,9 @@ impl Display for Card {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         write!(
             f,
-            "{}-{}",
-            self.card_value().to_string_short(),
-            self.card_color().to_string_long()
+            "{} {}",
+            self.card_color().to_string_long(),
+            self.card_value().to_string_long()
         )
     }
 }
@@ -268,6 +268,21 @@ impl CardValue {
     fn to_string_short(&self) -> &'static str {
         match self {
             CardValue::Wager => "wgr",
+            CardValue::Two => "2",
+            CardValue::Three => "3",
+            CardValue::Four => "4",
+            CardValue::Five => "5",
+            CardValue::Six => "6",
+            CardValue::Seven => "7",
+            CardValue::Eight => "8",
+            CardValue::Nine => "9",
+            CardValue::Ten => "10",
+        }
+    }
+
+    fn to_string_long(&self) -> &'static str {
+        match self {
+            CardValue::Wager => "Wager",
             CardValue::Two => "2",
             CardValue::Three => "3",
             CardValue::Four => "4",

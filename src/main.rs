@@ -133,7 +133,7 @@ fn get_next_play_from_cli(game_state: &GameState) -> (&Card, CardTarget, DrawPil
         let card = decorated_card.card();
 
         // CardTarget
-        let cli_card_target = Cli::prompt_for_input(&format!("[2/3] Where would you like to play {}? (press b=board, n=neutral)", card));
+        let cli_card_target = Cli::prompt_for_input(&format!("[2/3] Where would you like to play '{}'? (press b=board, n=neutral)", card));
         let card_target = match cli_card_target.as_str() {
             "b" => CardTarget::Player,
             "n" => CardTarget::Neutral,
