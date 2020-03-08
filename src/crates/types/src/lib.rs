@@ -3,6 +3,8 @@ use std::fmt::{Debug, Display, Formatter};
 use std::error::Error;
 use core::fmt;
 
+mod display;
+
 pub struct GameMetadata {
     game_id: String,
     p1_id: String,
