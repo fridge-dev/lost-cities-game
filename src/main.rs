@@ -130,6 +130,7 @@ fn get_next_play_from_cli(game_state: &GameState) -> (&Card, CardTarget, DrawPil
             continue;
         }
         let decorated_card = card_opt.unwrap();
+        // TODO this is a bug, fix it
         if !decorated_card.is_playable() {
             // This is also validated in backend, but to short-circuit well-behaving clients, we check here first.
             println!("You're not allowed to play card '{:?}'.", decorated_card.card());

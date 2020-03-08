@@ -31,6 +31,9 @@ impl GameMetadata {
     }
 }
 
+/// Everything within GameState's hierarchy is in reference to the requesting player.
+/// * "my" = the player's data
+/// * "op" = the opponent's data
 #[derive(Debug)]
 pub struct GameState {
     game_board: GameBoard,
@@ -65,47 +68,47 @@ impl GameState {
 }
 
 pub struct GameBoard {
-    p1_plays: HashMap<CardColor, Vec<CardValue>>,
-    p2_plays: HashMap<CardColor, Vec<CardValue>>,
-    p1_score: i32,
-    p2_score: i32,
+    my_plays: HashMap<CardColor, Vec<CardValue>>,
+    op_plays: HashMap<CardColor, Vec<CardValue>>,
+    my_score: i32,
+    op_score: i32,
     neutral_draw_pile: HashMap<CardColor, (CardValue, usize)>,
     draw_pile_cards_remaining: usize,
 }
 
 impl GameBoard {
     pub fn new(
-        p1_plays: HashMap<CardColor, Vec<CardValue>>,
-        p2_plays: HashMap<CardColor, Vec<CardValue>>,
-        p1_score: i32,
-        p2_score: i32,
+        my_plays: HashMap<CardColor, Vec<CardValue>>,
+        op_plays: HashMap<CardColor, Vec<CardValue>>,
+        my_score: i32,
+        op_score: i32,
         neutral_draw_pile: HashMap<CardColor, (CardValue, usize)>,
         draw_pile_cards_remaining: usize
     ) -> Self {
         GameBoard {
-            p1_plays,
-            p2_plays,
-            p1_score,
-            p2_score,
+            my_plays,
+            op_plays,
+            my_score,
+            op_score,
             neutral_draw_pile,
             draw_pile_cards_remaining
         }
     }
 
-    pub fn p1_plays(&self) -> &HashMap<CardColor, Vec<CardValue>> {
-        &self.p1_plays
+    pub fn my_plays(&self) -> &HashMap<CardColor, Vec<CardValue>> {
+        &self.my_plays
     }
 
-    pub fn p2_plays(&self) -> &HashMap<CardColor, Vec<CardValue>> {
-        &self.p2_plays
+    pub fn op_plays(&self) -> &HashMap<CardColor, Vec<CardValue>> {
+        &self.op_plays
     }
 
-    pub fn p1_score(&self) -> &i32 {
-        &self.p1_score
+    pub fn my_score(&self) -> &i32 {
+        &self.my_score
     }
 
-    pub fn p2_score(&self) -> &i32 {
-        &self.p2_score
+    pub fn op_score(&self) -> &i32 {
+        &self.op_score
     }
 
     pub fn neutral_draw_pile(&self) -> &HashMap<CardColor, (CardValue, usize)> {
@@ -121,11 +124,11 @@ impl Debug for GameBoard {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(
             f,
-            "GameBoard {{ p1_plays: {}, p2_plays: {}, p1_score: {}, p2_score: {}, neutral_draw_pile: {}, draw_pile_cards_remaining: {} }}",
-            fmt_hash_map(&self.p1_plays),
-            fmt_hash_map(&self.p2_plays),
-            self.p1_score,
-            self.p2_score,
+            "GameBoard {{ my_plays: {}, op_plays: {}, my_score: {}, op_score: {}, neutral_draw_pile: {}, draw_pile_cards_remaining: {} }}",
+            fmt_hash_map(&self.my_plays),
+            fmt_hash_map(&self.op_plays),
+            self.my_score,
+            self.op_score,
             fmt_hash_map(&self.neutral_draw_pile),
             self.draw_pile_cards_remaining,
         )
