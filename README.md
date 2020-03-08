@@ -46,10 +46,13 @@ Just putting this here, for now.
 1. Rules: handle end game
 1. Implement backend with file storage
 1. Figure out nio task model for backend
+1. See if it's easily possible to separate storage types from API types
+1. See if it's easily possible to separate CLI/FE logic from backend logic via separate repos?
 
 **Frontend**
 1. Implement main.rs state machine (turns, end game)
 1. Implement main.rs board drawer
+1. Add duplicate rule checks on the FE
 
 **General**
 1. Figure out best way to model error propagation to top level.
