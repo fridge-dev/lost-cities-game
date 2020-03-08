@@ -5,7 +5,7 @@ use storage::storage_api::GameStore;
 use storage::local_storage::LocalStore;
 use rules::deck::DeckFactory;
 use std::collections::HashMap;
-use rules::plays;
+use rules::{plays, scoring};
 
 pub struct GameApiHandler {
     storage: Box<dyn GameStore>,
@@ -152,12 +152,17 @@ fn convert_game_state(storage_game_state: StorageGameState, is_player_1: bool) -
         }
     }
 
+    let (my_plays, op_plays) = if is_player_1 {
+        (storage_game_state.p1_plays(), storage_game_state.p2_plays())
+    } else {
+        (storage_game_state.p2_plays(), storage_game_state.p1_plays())
+    };
+
     let game_board = GameBoard::new(
-        storage_game_state.p1_plays().to_owned(),
-        storage_game_state.p2_plays().to_owned(),
-        // TODO implement scoring
-        0,
-        0,
+        my_plays.to_owned(),
+        op_plays.to_owned(),
+        scoring::compute_score(my_plays),
+        scoring::compute_score(op_plays),
         concealed_neutral_draw_pile,
         storage_game_state.main_draw_pile().len(),
     );

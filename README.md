@@ -63,7 +63,6 @@ Your hand:
 ### Planned
 
 **Backend**
-1. Rules: scoring
 1. Rules: handle end game
 1. Implement backend with file storage
 1. Figure out nio task model for backend
@@ -73,9 +72,15 @@ Your hand:
 **Frontend**
 1. Implement main.rs state machine (turns, end game)
 1. Implement main.rs board drawer
+1. Improve turn selection UI
+  * Sort cards in hand
+  * Add review section
+  * Add better selection mechanism
+  * Add turn indicator
 1. Add duplicate rule checks on the FE
 
 **General**
+1. Split game into separate backend and frontend processes.
 1. Figure out best way to model error propagation to top level.
 1. Figure out how to make sub-crates tests run during top-level cargo build
 1. Add automated test of a game
@@ -92,3 +97,4 @@ Your hand:
 1. Add rules engine
 1. Rules: updating based on a turn
 1. Implement main.rs user turn selection I/O
+1. Rules: scoring
