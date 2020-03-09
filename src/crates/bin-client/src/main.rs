@@ -1,5 +1,5 @@
 use std::error::Error;
-use types::{Play, Card, CardColor, CardTarget, DrawPile, GameState, GameError};
+use types::{Play, Card, CardColor, CardTarget, DrawPile, GameState, GameError, GameStatus, GameResult};
 use api::GameApi;
 use client::cli;
 use client::state_machine::Alternator;
@@ -25,11 +25,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     loop {
         let current_player_id: &str = player_turns.next();
         let game_state = game_api.get_game_state(&game_id, &current_player_id)?;
-        println!("Frontend Game state: {}", game_state);
+        println!("{}", game_state);
 
         // End game check
-        // TODO move this to lib, as it's a rule of the game, not the CLI's responsibility.
-        if 0 == *game_state.game_board().draw_pile_cards_remaining() {
+        if check_is_game_over_and_print_outcome(&game_state) {
             break;
         }
 
@@ -46,7 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         ))?;
     }
 
-    println!("Game over. Goodbye.");
+    println!("Thanks for playing! Goodbye.");
     Ok(())
 }
 
@@ -65,6 +64,22 @@ fn create_alternator<'a>(
     }
 
     Ok(player_turns)
+}
+
+fn check_is_game_over_and_print_outcome(game_state: &GameState) -> bool {
+    match game_state.status() {
+        GameStatus::InProgress => false,
+        GameStatus::Complete(result) => {
+            match result {
+                GameResult::Win => print!("Congratulations, you win! "),
+                GameResult::Lose => print!("Sorry, you lost. "),
+                GameResult::Draw => print!("It was a draw! How rare! "),
+            }
+
+            println!("Score: {} to {}", game_state.game_board().my_score(), game_state.game_board().op_score());
+            return true;
+        }
+    }
 }
 
 fn get_next_play_from_cli(game_state: &GameState) -> (&Card, CardTarget, DrawPile) {

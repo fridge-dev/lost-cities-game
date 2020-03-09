@@ -41,18 +41,21 @@ pub struct GameState {
     game_board: GameBoard,
     my_hand: Vec<DecoratedCard>,
     is_my_turn: bool,
+    status: GameStatus,
 }
 
 impl GameState {
     pub fn new(
         game_board: GameBoard,
         my_hand: Vec<DecoratedCard>,
-        is_my_turn: bool
+        is_my_turn: bool,
+        status: GameStatus,
     ) -> Self {
         GameState {
             game_board,
             my_hand,
-            is_my_turn
+            is_my_turn,
+            status,
         }
     }
 
@@ -66,6 +69,10 @@ impl GameState {
 
     pub fn is_my_turn(&self) -> &bool {
         &self.is_my_turn
+    }
+
+    pub fn status(&self) -> &GameStatus {
+        &self.status
     }
 }
 
@@ -143,6 +150,19 @@ fn fmt_hash_map<K: Debug, V: Debug>(map: &HashMap<K, V>) -> String {
         v.push(format!("{:?}: {:?}", &key, &val));
     }
     format!("HashMap {{ {} }}", v.join(", "))
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum GameStatus {
+    InProgress,
+    Complete(GameResult),
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum GameResult {
+    Win,
+    Lose,
+    Draw
 }
 
 /// DecoratedCard is basically the API layer's representation of a "Card" and the

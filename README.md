@@ -63,13 +63,12 @@ Your hand:
 ### Planned
 
 **Backend**
-1. Rules: handle end game
 1. Implement backend with file storage
 1. Figure out nio task model for backend
 1. See if it's easily possible to separate storage types from API types
-1. See if it's easily possible to separate CLI/FE logic from backend logic via separate repos?
 
 **Frontend**
+Note: All of these should be done after BE/FE are split into separate processes.
 1. Implement main.rs state machine (turns, end game)
 1. Improve turn selection UI
   * Sort cards in hand
@@ -99,3 +98,4 @@ Your hand:
 1. Implement main.rs user turn selection I/O
 1. Rules: scoring
 1. Implement main.rs board drawer
+1. Rules: handle end game

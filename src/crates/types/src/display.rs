@@ -300,7 +300,7 @@ impl CardValue {
 mod tests {
     use super::*;
     use std::collections::HashMap;
-    use crate::{GameState, DecoratedCard};
+    use crate::{GameState, DecoratedCard, GameStatus};
 
     #[test]
     fn eyeball_stdout_test() {
@@ -361,7 +361,8 @@ mod tests {
         let game_state = GameState::new(
             game_board,
             my_hand,
-            true
+            true,
+            GameStatus::InProgress
         );
 
         println!();
