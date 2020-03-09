@@ -1,0 +1,16 @@
+[package]
+name = "client"
+version = "0.1.0"
+authors = ["Alec Von Arx <al.vonarx@gmail.com>"]
+edition = "2018"
+
+[[bin]]
+name = "lost-cities-game-client"
+path = "src/main.rs"
+
+[dependencies]
+# Local repo dependencies
+api = { path = "../../crates/api" }
+types = { path = "../../crates/types" }
+
+# External dependencies

@@ -1,0 +1,11 @@
+[package]
+name = "server"
+version = "0.1.0"
+authors = ["Alec Von Arx <al.vonarx@gmail.com>"]
+edition = "2018"
+
+[[bin]]
+name = "lost-cities-game-server"
+path = "src/main.rs"
+
+[dependencies]

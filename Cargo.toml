@@ -1,29 +1,9 @@
-[package]
-name = "lost-cities-game"
-version = "0.1.0"
-authors = ["Alec Von Arx <al.vonarx@gmail.com>"]
-edition = "2018"
-publish = false
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-# Example of cool project organization: https://github.com/BurntSushi/ripgrep/blob/master/Cargo.toml
-
-[[bin]]
-path = "src/main.rs"
-name = "lost-cities-game"
-
 [workspace]
-# I still don't know why this is needed.
 members = [
   "src/crates/api",
+  "src/crates/bin-client",
+  "src/crates/bin-server",
   "src/crates/rules",
   "src/crates/storage",
   "src/crates/types",
 ]
-
-[dependencies]
-# Local repo dependencies
-api = { path = "src/crates/api" }
-types = { path = "src/crates/types" }
-
-# External dependencies
