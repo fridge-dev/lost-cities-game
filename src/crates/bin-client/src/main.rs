@@ -1,19 +1,18 @@
 use std::error::Error;
-use std::{io, process};
 use types::{Play, Card, CardColor, CardTarget, DrawPile, GameState, GameError};
 use api::GameApi;
+use client::cli;
+use client::state_machine::Alternator;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    println!("Hello, world!");
-
     let mut game_api = api::new_game_api();
 
     // Game setup
-    let p1_id = Cli::prompt_for_input("Please enter Player 1's name: ");
+    let p1_id = cli::prompt_for_input("Please enter Player 1's name: ");
     let game_id = game_api.host_game(&p1_id)?;
     println!("Created Game ID = {}", game_id);
 
-    let p2_id = Cli::prompt_for_input("Please enter Player 2's name: ");
+    let p2_id = cli::prompt_for_input("Please enter Player 2's name: ");
     game_api.join_game(&game_id, &p2_id)?;
 
     println!();
@@ -68,55 +67,12 @@ fn create_alternator<'a>(
     Ok(player_turns)
 }
 
-// TODO move this to lib, this doesn't belong in main
-struct Alternator<'a, T> {
-    pair: [&'a T; 2],
-    next_index: usize,
-}
-
-impl<'a, T> Alternator<'a, T> {
-    pub fn new(first: &'a T, second: &'a T) -> Self {
-        Alternator {
-            pair: [first, second],
-            // first call to "next" will return index 0
-            next_index: 1,
-        }
-    }
-
-    pub fn next(&mut self) -> &T {
-        self.next_index ^= 1;
-        self.pair[self.next_index]
-    }
-}
-
-struct Cli;
-
-impl Cli {
-
-    pub fn prompt_for_input(prompt: &str) -> String {
-        // print!() doesn't work, newline is needed, and it looks ugly.
-        // Will make it pretty, later.
-        println!("{}", prompt);
-        let mut user_input = String::new();
-        match io::stdin().read_line(&mut user_input) {
-            Ok(_num_bytes_read) => {},
-            Err(e) => {
-                eprintln!("Failed to read CLI input from user: {}", e);
-                eprintln!("Literally crashing the entire program. Goodbye.");
-                process::exit(1);
-            },
-        }
-        user_input.trim().to_string()
-    }
-
-}
-
 fn get_next_play_from_cli(game_state: &GameState) -> (&Card, CardTarget, DrawPile) {
     loop {
         println!();
 
         // Card
-        let cli_hand_index = Cli::prompt_for_input(&format!("[1/3] Which card would you like to play? (press 0-7 to select card)"));
+        let cli_hand_index = cli::prompt_for_input(&format!("[1/3] Which card would you like to play? (press 0-7 to select card)"));
 
         let hand_index: usize = cli_hand_index.parse().unwrap_or(100);
         if hand_index > 7 {
@@ -133,7 +89,7 @@ fn get_next_play_from_cli(game_state: &GameState) -> (&Card, CardTarget, DrawPil
         let card = decorated_card.card();
 
         // CardTarget
-        let cli_card_target = Cli::prompt_for_input(&format!("[2/3] Where would you like to play '{}'? (press b=board, n=neutral)", card));
+        let cli_card_target = cli::prompt_for_input(&format!("[2/3] Where would you like to play '{}'? (press b=board, n=neutral)", card));
         let card_target = match cli_card_target.as_str() {
             "b" => CardTarget::Player,
             "n" => CardTarget::Neutral,
@@ -153,11 +109,11 @@ fn get_next_play_from_cli(game_state: &GameState) -> (&Card, CardTarget, DrawPil
         }
 
         // DrawPile
-        let cli_draw_pile = Cli::prompt_for_input(&format!("[3/3] Where would you like to draw your new card from? (press m=main, n=neutral)"));
+        let cli_draw_pile = cli::prompt_for_input(&format!("[3/3] Where would you like to draw your new card from? (press m=main, n=neutral)"));
         let draw_pile = match cli_draw_pile.as_str() {
             "m" => DrawPile::Main,
             "n" => {
-                let cli_neutral_draw_color = Cli::prompt_for_input(&format!("...And which color would you like to draw from? (enter the first letter of the color)"));
+                let cli_neutral_draw_color = cli::prompt_for_input(&format!("...And which color would you like to draw from? (enter the first letter of the color)"));
                 let draw_color = match cli_neutral_draw_color.as_str() {
                     "b" => CardColor::Blue,
                     "g" => CardColor::Green,
