@@ -6,4 +6,5 @@ members = [
   "src/crates/rules",
   "src/crates/storage",
   "src/crates/types",
+  "src/crates/wire_types",
 ]

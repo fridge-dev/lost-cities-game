@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+// Don't change this. src/ depends on it.
+package proto_lost_cities;
+
+// =======================================
+// Service
+// =======================================
+
+service ProtoLostCities {
+    rpc HostGame (ProtoHostGameReq) returns (ProtoHostGameReply) {}
+    rpc JoinGame (ProtoJoinGameReq) returns (ProtoJoinGameReply) {}
+    rpc GetGameState (ProtoGetGameStateReq) returns (ProtoGetGameStateReply) {}
+    rpc PlayCard (ProtoPlayCardReq) returns (ProtoPlayCardReply) {}
+}
+
+// =======================================
+// API Request and Reply messages
+// =======================================
+
+// Convention: ALL messages should have prefix "Proto" so in the rust src, it's easy
+// to understand which types are generated.
+
+message ProtoHostGameReq {
+    string player_id = 1;
+}
+
+message ProtoHostGameReply {
+    string game_id = 1;
+}
+
+message ProtoJoinGameReq {
+    string game_id = 1;
+    string player_id = 2;
+}
+
+message ProtoJoinGameReply {
+    // Nothing
+}
+
+message ProtoGetGameStateReq {
+    string game_id = 1;
+    string player_id = 2;
+}
+
+message ProtoGetGameStateReply {
+    ProtoGame game = 1;
+    string opponent_player_id = 2;
+}
+
+message ProtoPlayCardReq {
+    string game_id = 1;
+    string player_id = 2;
+    ProtoCard card = 3;
+    ProtoPlayTarget target = 4;
+    ProtoDrawPile draw_pile = 5;
+
+}
+
+message ProtoPlayCardReply {
+    // Nothing
+}
+
+// =======================================
+// Sub types
+// =======================================
+
+message ProtoCard {
+    ProtoColor color = 1;
+    uint32 value = 2;
+}
+
+enum ProtoColor {
+    RED = 0;
+    GREEN = 1;
+    WHITE = 2;
+    BLUE = 3;
+    YELLOW = 4;
+}
+
+message ProtoPlayHistory {
+    repeated uint32 red = 1;
+    repeated uint32 green = 2;
+    repeated uint32 white = 3;
+    repeated uint32 blue = 4;
+    repeated uint32 yellow = 5;
+}
+
+enum ProtoDrawPile {
+    MAIN_DRAW = 0;
+    DISCARD_DRAW = 1;
+}
+
+enum ProtoPlayTarget {
+    PLAYER_BOARD = 0;
+    DISCARD = 1;
+}
+
+message ProtoGame {
+    repeated ProtoCard my_hand = 1;
+    ProtoPlayHistory my_plays = 2;
+    ProtoPlayHistory opponent_plays = 3;
+    ProtoDiscardPile discard_pile = 4;
+    uint32 draw_pile_cards_remaining = 5;
+    ProtoGameStatus status = 6;
+    sint32 my_score = 7;
+    sint32 op_score = 8;
+}
+
+message ProtoDiscardPile {
+    ProtoDiscardPileSurface red = 1;
+    ProtoDiscardPileSurface green = 2;
+    ProtoDiscardPileSurface white = 3;
+    ProtoDiscardPileSurface blue = 4;
+    ProtoDiscardPileSurface yellow = 5;
+}
+
+message ProtoDiscardPileSurface {
+    uint32 value = 1;
+    uint32 remaining = 2;
+}
+
+enum ProtoGameStatus {
+    YOUR_TURN = 0;
+    OPPONENT_TURN = 1;
+    END_WIN = 2;
+    END_LOSE = 3;
+    END_DRAW = 4;
+}

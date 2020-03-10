@@ -1,0 +1,12 @@
+[package]
+name = "wire_types"
+version = "0.1.0"
+authors = ["Alec Von Arx <al.vonarx@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+tonic = "0.1.1"
+prost = "0.6.1"
+
+[build-dependencies]
+tonic-build = "0.1.1"

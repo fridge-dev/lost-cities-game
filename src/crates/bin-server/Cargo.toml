@@ -9,3 +9,9 @@ name = "lost-cities-game-server"
 path = "src/main.rs"
 
 [dependencies]
+# Local repo dependencies
+wire_types = { path = "../../crates/wire_types" }
+
+# External dependencies
+tokio = { version = "0.2", features = ["full"] }
+tonic = "0.1.1"
