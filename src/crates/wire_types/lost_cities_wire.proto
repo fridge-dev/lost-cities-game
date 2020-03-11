@@ -71,11 +71,12 @@ message ProtoCard {
 }
 
 enum ProtoColor {
-    RED = 0;
-    GREEN = 1;
-    WHITE = 2;
-    BLUE = 3;
-    YELLOW = 4;
+    NO_COLOR = 0;
+    RED = 1;
+    GREEN = 2;
+    WHITE = 3;
+    BLUE = 4;
+    YELLOW = 5;
 }
 
 message ProtoPlayHistory {
@@ -87,13 +88,15 @@ message ProtoPlayHistory {
 }
 
 enum ProtoDrawPile {
-    MAIN_DRAW = 0;
-    DISCARD_DRAW = 1;
+    NO_DRAW_PILE = 0;
+    MAIN_DRAW = 1;
+    DISCARD_DRAW = 2;
 }
 
 enum ProtoPlayTarget {
-    PLAYER_BOARD = 0;
-    DISCARD = 1;
+    NO_PLAY_TARGET = 0;
+    PLAYER_BOARD = 1;
+    DISCARD = 2;
 }
 
 message ProtoGame {
@@ -121,9 +124,10 @@ message ProtoDiscardPileSurface {
 }
 
 enum ProtoGameStatus {
-    YOUR_TURN = 0;
-    OPPONENT_TURN = 1;
-    END_WIN = 2;
-    END_LOSE = 3;
-    END_DRAW = 4;
+    NO_GAME_STATUS = 0;
+    YOUR_TURN = 1;
+    OPPONENT_TURN = 2;
+    END_WIN = 3;
+    END_LOSE = 4;
+    END_DRAW = 5;
 }

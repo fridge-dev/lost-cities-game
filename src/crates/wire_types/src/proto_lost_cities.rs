@@ -121,32 +121,36 @@ pub struct ProtoDiscardPileSurface {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum ProtoColor {
-    Red = 0,
-    Green = 1,
-    White = 2,
-    Blue = 3,
-    Yellow = 4,
+    NoColor = 0,
+    Red = 1,
+    Green = 2,
+    White = 3,
+    Blue = 4,
+    Yellow = 5,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum ProtoDrawPile {
-    MainDraw = 0,
-    DiscardDraw = 1,
+    NoDrawPile = 0,
+    MainDraw = 1,
+    DiscardDraw = 2,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum ProtoPlayTarget {
-    PlayerBoard = 0,
-    Discard = 1,
+    NoPlayTarget = 0,
+    PlayerBoard = 1,
+    Discard = 2,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum ProtoGameStatus {
-    YourTurn = 0,
-    OpponentTurn = 1,
-    EndWin = 2,
-    EndLose = 3,
-    EndDraw = 4,
+    NoGameStatus = 0,
+    YourTurn = 1,
+    OpponentTurn = 2,
+    EndWin = 3,
+    EndLose = 4,
+    EndDraw = 5,
 }
 #[doc = r" Generated client implementations."]
 pub mod proto_lost_cities_client {
