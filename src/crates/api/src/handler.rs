@@ -20,13 +20,13 @@ impl GameApiHandler {
         }
     }
 
-    fn update_game_metadata(&mut self, game_id: &str, p2_id: &str) -> Result<(), GameError> {
+    fn update_game_metadata(&mut self, game_id: &str, p2_id: String) -> Result<(), GameError> {
         let mut metadata = self.storage.load_game_metadata(game_id)
             .map_err(|e| match e {
                 StorageError::NotFound => GameError::NotFound("Game metadata"),
                 _ => GameError::Internal(Cause::Storage("Failed to load game metadata", Box::new(e)))
             })?;
-        metadata.set_p2_id(p2_id.to_string())
+        metadata.set_p2_id(p2_id)
             .map_err(|e| match e {
                 StorageError::IllegalModification => GameError::GameAlreadyMatched,
                 _ => GameError::Internal(Cause::Storage("Failed to mutate game metadata", Box::new(e))),
@@ -38,7 +38,7 @@ impl GameApiHandler {
             })
     }
 
-    fn create_initial_game_state(&mut self, game_id: &str) -> Result<(), GameError> {
+    fn create_initial_game_state(&mut self, game_id: String) -> Result<(), GameError> {
         let mut deck = self.deck_factory.new_shuffled_deck();
 
         let mut p1_hand: Vec<Card> = Vec::with_capacity(8);
@@ -49,7 +49,7 @@ impl GameApiHandler {
         }
 
         let game_state = StorageGameState::new(
-            game_id.to_owned(),
+            game_id,
             p1_hand,
             p2_hand,
             HashMap::new(),
@@ -92,11 +92,11 @@ impl GameApiHandler {
 
 impl GameApi for GameApiHandler {
 
-    fn host_game(&mut self, p1_id: &str) -> Result<String, GameError> {
+    fn host_game(&mut self, p1_id: String) -> Result<String, GameError> {
         let game_id = create_game_id();
         let storage_result = self.storage.create_game_metadata(StorageGameMetadata::new(
             game_id.clone(),
-            p1_id.to_owned(),
+            p1_id,
             None,
             GameStatus::InProgress,
         ));
@@ -108,13 +108,13 @@ impl GameApi for GameApiHandler {
         }
     }
 
-    fn join_game(&mut self, game_id: &str, p2_id: &str) -> Result<(), GameError> {
-        self.update_game_metadata(game_id, p2_id)?;
+    fn join_game(&mut self, game_id: String, p2_id: String) -> Result<(), GameError> {
+        self.update_game_metadata(&game_id, p2_id)?;
         self.create_initial_game_state(game_id)
     }
 
-    fn get_game_state(&self, game_id: &str, player_id: &str) -> Result<GameState, GameError> {
-        let (storage_game_state, is_player_1) = self.load_game(game_id, player_id)?;
+    fn get_game_state(&self, game_id: String, player_id: String) -> Result<GameState, GameError> {
+        let (storage_game_state, is_player_1) = self.load_game(&game_id, &player_id)?;
 
         let game_state = convert_game_state(storage_game_state, is_player_1);
 

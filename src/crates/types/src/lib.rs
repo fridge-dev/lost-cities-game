@@ -313,23 +313,22 @@ mod rand_utils {
     }
 }
 
-// I think this usage of lifetimes is "safe" and won't be complicated later. Let's find out!
-pub struct Play<'a> {
-    game_id: &'a str,
-    player_id: &'a str,
-    card: &'a Card,
+pub struct Play {
+    game_id: String,
+    player_id: String,
+    card: Card,
     target: CardTarget,
     draw_pile: DrawPile,
 }
 
-impl<'a> Play<'a> {
+impl Play {
     pub fn new(
-        game_id: &'a str,
-        player_id: &'a str,
-        card: &'a Card,
+        game_id: String,
+        player_id: String,
+        card: Card,
         target: CardTarget,
         draw_pile: DrawPile,
-    ) -> Play<'a> {
+    ) -> Play {
         Play {
             game_id,
             player_id,
@@ -340,15 +339,15 @@ impl<'a> Play<'a> {
     }
 
     pub fn game_id(&self) -> &str {
-        self.game_id
+        &self.game_id
     }
 
     pub fn player_id(&self) -> &str {
-        self.player_id
+        &self.player_id
     }
 
     pub fn card(&self) -> &Card {
-        self.card
+        &self.card
     }
 
     pub fn target(&self) -> &CardTarget {
