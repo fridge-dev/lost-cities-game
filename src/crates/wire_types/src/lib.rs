@@ -3,3 +3,4 @@
 ///
 /// Let's see what happens.
 pub mod proto_lost_cities;
+mod enum_converter;
