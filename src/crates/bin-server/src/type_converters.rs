@@ -286,7 +286,7 @@ fn convert_hand(hand: &Vec<DecoratedCard>) -> Vec<ProtoCard> {
 }
 
 fn convert_plays(plays: &HashMap<CardColor, Vec<CardValue>>) -> ProtoPlayHistory {
-    let inner_converter: Fn(CardColor) -> Vec<u32> = |color| {
+    let inner_converter = |color| {
         plays.get(&color)
             .map(|values| convert_card_value_vec(values))
             .unwrap_or(vec![])
