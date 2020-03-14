@@ -37,11 +37,19 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let inner = request.into_inner();
         println!("Rcv: {:?}", inner);
 
-        let reply = ProtoHostGameReply {
-            game_id: "".to_string()
-        };
+        let player_id = WireTypeConverter::convert_host_game_req(inner)?;
 
-        Ok(Response::new(reply))
+        let result = {
+            match self.game_api.lock() {
+                Ok(mut api) => api.host_game(player_id),
+                Err(e) => Err(convert_lock_error(e)),
+            }
+        };
+        let game_id = result.map_err(|e| WireTypeConverter::convert_error(e))?;
+
+        Ok(Response::new(ProtoHostGameReply {
+            game_id
+        }))
     }
 
     async fn join_game(&self, request: Request<ProtoJoinGameReq>) -> Result<Response<ProtoJoinGameReply>, Status> {
@@ -69,7 +77,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let inner = request.into_inner();
         println!("Rcv: {:?}", inner);
 
-        let play = WireTypeConverter::convert_play(inner)?;
+        let play = WireTypeConverter::convert_play_card_req(inner)?;
 
         let result = {
             match self.game_api.lock() {

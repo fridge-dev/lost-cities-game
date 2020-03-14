@@ -7,7 +7,16 @@ use wire_types::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJ
 pub struct WireTypeConverter;
 
 impl WireTypeConverter {
-    pub fn convert_play(req: ProtoPlayCardReq) -> Result<Play, Status> {
+
+    pub fn convert_host_game_req(req: ProtoHostGameReq) -> Result<String, Status> {
+        if req.player_id.is_empty() {
+            return Err(Status::new(Code::InvalidArgument, "Missing PlayedId"));
+        }
+
+        Ok(req.player_id)
+    }
+
+    pub fn convert_play_card_req(req: ProtoPlayCardReq) -> Result<Play, Status> {
         Ok(Play::try_from_proto(req)?)
     }
 
