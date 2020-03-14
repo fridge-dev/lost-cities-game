@@ -3,12 +3,7 @@
 /// this. So I will create explicit methods and contain the "dark magic" within these small methods.
 ///
 /// See https://github.com/danburkert/prost/issues/69
-use crate::proto_lost_cities::{
-    ProtoColor,
-    ProtoPlayTarget,
-    ProtoDrawPile,
-    ProtoGameStatus
-};
+use crate::proto_lost_cities::{ProtoColor, ProtoDrawPile, ProtoGameStatus, ProtoPlayTarget};
 
 impl ProtoColor {
     pub fn convert_i32(val: i32) -> Option<ProtoColor> {

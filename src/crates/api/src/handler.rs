@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use rules::{plays, scoring, endgame};
 
 pub struct GameApiHandler {
-    storage: Box<dyn GameStore>,
+    storage: Box<dyn GameStore + Send>,
     deck_factory: DeckFactory,
 }
 

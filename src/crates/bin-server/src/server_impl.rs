@@ -1,0 +1,84 @@
+use tonic::{Request, Response, Status};
+use wire_types::proto_lost_cities::proto_lost_cities_server::{
+    ProtoLostCities
+};
+use wire_types::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply};
+use api::GameApi;
+use crate::type_converters::WireTypeConverter;
+use std::sync::{Mutex, MutexGuard, LockResult, PoisonError};
+use types::{GameError, Cause};
+use tonic::codegen::Arc;
+
+/// Backend server is the entry point which will implement the gRPC server type.
+pub struct LostCitiesBackendServer {
+    // Mutex because I want a working, multi-tasked prototype for now.
+    // I'll change the GameApi to be backed by a mpsc task model with oneshot callbacks.
+    game_api: Arc<Mutex<dyn GameApi + Send>>,
+}
+
+impl LostCitiesBackendServer {
+    pub fn new() -> Self {
+        LostCitiesBackendServer {
+            game_api: api::new_game_api_sync()
+        }
+    }
+}
+
+fn convert_lock_error<T>(e: PoisonError<T>) -> GameError {
+    // I don't know how to recover from this. Recreate game handler?
+    println!("ERROR: GameApi lock was poisoned. Here's the err: {}", e);
+    GameError::Internal(Cause::Internal("Failed to acquire GameApi lock"))
+}
+
+#[tonic::async_trait]
+impl ProtoLostCities for LostCitiesBackendServer {
+
+    async fn host_game(&self, request: Request<ProtoHostGameReq>) -> Result<Response<ProtoHostGameReply>, Status> {
+        let inner = request.into_inner();
+        println!("Rcv: {:?}", inner);
+
+        let reply = ProtoHostGameReply {
+            game_id: "".to_string()
+        };
+
+        Ok(Response::new(reply))
+    }
+
+    async fn join_game(&self, request: Request<ProtoJoinGameReq>) -> Result<Response<ProtoJoinGameReply>, Status> {
+        let inner = request.into_inner();
+        println!("Rcv: {:?}", inner);
+
+        let reply = ProtoJoinGameReply {};
+
+        Ok(Response::new(reply))
+    }
+
+    async fn get_game_state(&self, request: Request<ProtoGetGameStateReq>) -> Result<Response<ProtoGetGameStateReply>, Status> {
+        let inner = request.into_inner();
+        println!("Rcv: {:?}", inner);
+
+        let reply = ProtoGetGameStateReply {
+            game: None,
+            opponent_player_id: "".to_string()
+        };
+
+        Ok(Response::new(reply))
+    }
+
+    async fn play_card(&self, request: Request<ProtoPlayCardReq>) -> Result<Response<ProtoPlayCardReply>, Status> {
+        let inner = request.into_inner();
+        println!("Rcv: {:?}", inner);
+
+        let play = WireTypeConverter::convert_play(inner)?;
+
+        let result = {
+            match self.game_api.lock() {
+                Ok(mut api) => api.play_card(play),
+                Err(e) => Err(convert_lock_error(e)),
+            }
+        };
+        result.map_err(|e| WireTypeConverter::convert_error(e))?;
+
+        Ok(Response::new(ProtoPlayCardReply {}))
+    }
+}

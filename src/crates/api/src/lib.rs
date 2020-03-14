@@ -1,5 +1,6 @@
 use types::{GameError, GameState, Play};
 use crate::handler::GameApiHandler;
+use std::sync::{Arc, Mutex};
 
 mod handler;
 
@@ -32,4 +33,8 @@ pub trait GameApi {
 /// * https://stackoverflow.com/questions/28621980/what-are-the-actual-runtime-performance-costs-of-dynamic-dispatch
 pub fn new_game_api() -> Box<dyn GameApi> {
     Box::new(GameApiHandler::new())
+}
+
+pub fn new_game_api_sync() -> Arc<Mutex<dyn GameApi + Send>> {
+    Arc::new(Mutex::new(GameApiHandler::new()))
 }

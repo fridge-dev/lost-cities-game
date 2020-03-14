@@ -386,6 +386,9 @@ pub enum GameError {
 #[derive(Debug)]
 pub enum Cause {
 
+    /// Error caused by unknown internal behavior. This is the default case.
+    Internal(&'static str),
+
     /// Error caused by internal/dependency storage layer
     Storage(&'static str, Box<dyn Error>),
 
@@ -402,8 +405,7 @@ pub enum Cause {
     Impossible,
 }
 
-// These may end up being my way of educating new users to the rules of the game. Consider giving this
-// a really descriptive Display impl.
+/// This is basically the "rules" enum. For each rule dictating allowed plays, there will be an entry here.
 #[derive(Debug)]
 pub enum Reason {
     NotYourTurn,
@@ -411,6 +413,19 @@ pub enum Reason {
     CantPlayDecreasingCardValue,
     NeutralDrawPileEmpty,
     CantRedrawCardJustPlayed,
+}
+
+/// User-facing message to educate the user how to play.
+impl Display for Reason {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            Reason::NotYourTurn => write!(f, "It is not your turn."),
+            Reason::CardNotInHand => write!(f, "The card is not in your hand."),
+            Reason::CantPlayDecreasingCardValue => write!(f, "For a specific color, you must play cards of the same or higher value."),
+            Reason::NeutralDrawPileEmpty => write!(f, "You can't draw from the neutral discard pile for that color because it is empty."),
+            Reason::CantRedrawCardJustPlayed => write!(f, "You are not allowed to redraw the same card you just discarded."),
+        }
+    }
 }
 
 impl Error for GameError {}

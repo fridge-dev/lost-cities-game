@@ -51,6 +51,8 @@ pub struct ProtoPlayCardReq {
     pub target: i32,
     #[prost(enumeration = "ProtoDrawPile", tag = "5")]
     pub draw_pile: i32,
+    #[prost(enumeration = "ProtoColor", tag = "6")]
+    pub discard_draw_color: i32,
 }
 /// Nothing
 #[derive(Clone, PartialEq, ::prost::Message)]

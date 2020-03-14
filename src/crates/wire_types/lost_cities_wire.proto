@@ -54,7 +54,7 @@ message ProtoPlayCardReq {
     ProtoCard card = 3;
     ProtoPlayTarget target = 4;
     ProtoDrawPile draw_pile = 5;
-
+    ProtoColor discard_draw_color = 6;
 }
 
 message ProtoPlayCardReply {
