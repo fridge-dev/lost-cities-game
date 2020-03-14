@@ -16,6 +16,17 @@ impl WireTypeConverter {
         Ok(req.player_id)
     }
 
+    pub fn convert_join_game_req(req: ProtoJoinGameReq) -> Result<(String, String), Status> {
+        if req.game_id.is_empty() {
+            return Err(Status::new(Code::InvalidArgument, "Missing GameId"));
+        }
+        if req.player_id.is_empty() {
+            return Err(Status::new(Code::InvalidArgument, "Missing PlayerId"));
+        }
+
+        Ok((req.game_id, req.player_id))
+    }
+
     pub fn convert_play_card_req(req: ProtoPlayCardReq) -> Result<Play, Status> {
         Ok(Play::try_from_proto(req)?)
     }

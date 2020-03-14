@@ -56,9 +56,17 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let inner = request.into_inner();
         println!("Rcv: {:?}", inner);
 
-        let reply = ProtoJoinGameReply {};
+        let (game_id, player_id) = WireTypeConverter::convert_join_game_req(inner)?;
 
-        Ok(Response::new(reply))
+        let result = {
+            match self.game_api.lock() {
+                Ok(mut api) => api.join_game(game_id, player_id),
+                Err(e) => Err(convert_lock_error(e)),
+            }
+        };
+        result.map_err(|e| WireTypeConverter::convert_error(e))?;
+
+        Ok(Response::new(ProtoJoinGameReply {}))
     }
 
     async fn get_game_state(&self, request: Request<ProtoGetGameStateReq>) -> Result<Response<ProtoGetGameStateReply>, Status> {
