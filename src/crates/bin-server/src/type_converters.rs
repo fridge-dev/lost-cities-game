@@ -8,23 +8,17 @@ use types::{
     CardTarget,
     DrawPile,
     GameError,
-    Reason,
-    Cause,
     GameState,
-    GameBoard,
     GameStatus,
     GameResult,
     DecoratedCard
 };
 use wire_types::proto_lost_cities::{
     ProtoHostGameReq,
-    ProtoHostGameReply,
     ProtoJoinGameReq,
-    ProtoJoinGameReply,
     ProtoGetGameStateReq,
     ProtoGetGameStateReply,
     ProtoPlayCardReq,
-    ProtoPlayCardReply,
     ProtoPlayTarget,
     ProtoDrawPile,
     ProtoCard,

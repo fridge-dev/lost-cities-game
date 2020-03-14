@@ -5,7 +5,7 @@ use wire_types::proto_lost_cities::proto_lost_cities_server::{
 use wire_types::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply};
 use api::GameApi;
 use crate::type_converters::WireTypeConverter;
-use std::sync::{Mutex, MutexGuard, LockResult, PoisonError};
+use std::sync::{Mutex, PoisonError};
 use types::{GameError, Cause};
 use tonic::codegen::Arc;
 
