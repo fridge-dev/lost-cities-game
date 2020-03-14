@@ -1,6 +1,40 @@
+use std::collections::HashMap;
 use tonic::{Status, Code};
-use types::{Play, Card, CardColor, CardValue, CardTarget, DrawPile, GameError, Reason, Cause};
-use wire_types::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply, ProtoPlayTarget, ProtoDrawPile, ProtoCard, ProtoColor};
+use types::{
+    Play,
+    Card,
+    CardColor,
+    CardValue,
+    CardTarget,
+    DrawPile,
+    GameError,
+    Reason,
+    Cause,
+    GameState,
+    GameBoard,
+    GameStatus,
+    GameResult,
+    DecoratedCard
+};
+use wire_types::proto_lost_cities::{
+    ProtoHostGameReq,
+    ProtoHostGameReply,
+    ProtoJoinGameReq,
+    ProtoJoinGameReply,
+    ProtoGetGameStateReq,
+    ProtoGetGameStateReply,
+    ProtoPlayCardReq,
+    ProtoPlayCardReply,
+    ProtoPlayTarget,
+    ProtoDrawPile,
+    ProtoCard,
+    ProtoColor,
+    ProtoGame,
+    ProtoPlayHistory,
+    ProtoDiscardPile,
+    ProtoDiscardPileSurface,
+    ProtoGameStatus
+};
 
 /// Namespace all public methods to this single struct.
 /// Idk if this is a good pattern; we'll see.
@@ -25,6 +59,21 @@ impl WireTypeConverter {
         }
 
         Ok((req.game_id, req.player_id))
+    }
+
+    pub fn convert_get_game_state_req(req: ProtoGetGameStateReq) -> Result<(String, String), Status> {
+        if req.game_id.is_empty() {
+            return Err(Status::new(Code::InvalidArgument, "Missing GameId"));
+        }
+        if req.player_id.is_empty() {
+            return Err(Status::new(Code::InvalidArgument, "Missing PlayerId"));
+        }
+
+        Ok((req.game_id, req.player_id))
+    }
+
+    pub fn convert_game_state(game_state: GameState) -> Result<ProtoGetGameStateReply, Status> {
+        game_state.try_into_proto()
     }
 
     pub fn convert_play_card_req(req: ProtoPlayCardReq) -> Result<Play, Status> {
@@ -73,6 +122,9 @@ impl From<InvalidInput> for Status {
 }
 
 // ================ Implementations of TryFromProto trait ======================
+// Note to future self: If I would move the generated prototypes into this crate,
+// I could define TryFrom/TryInto on the types directly. The current "from" and
+// "into" verbage would have to swap.
 
 impl TryFromProto<ProtoCard> for Card {
     fn try_from_proto(proto_card: ProtoCard) -> Result<Self, InvalidInput> {
@@ -157,3 +209,133 @@ impl TryFromProto<ProtoPlayCardReq> for Play {
     }
 }
 
+// =========================== Reply converters ================================
+
+trait TryIntoProto<P> where Self : Sized {
+    fn try_into_proto(self) -> Result<P, Status>;
+}
+trait IntoProto<P> where Self : Sized {
+    fn into_proto(self) -> P;
+}
+
+impl IntoProto<ProtoCard> for Card {
+    fn into_proto(self) -> ProtoCard {
+        ProtoCard {
+            color: self.card_color().into_proto(),
+            value: self.card_value().into_proto(),
+        }
+    }
+}
+
+impl IntoProto<i32> for CardColor {
+    fn into_proto(self) -> i32 {
+        let proto_color: ProtoColor = match self {
+            CardColor::Red => ProtoColor::Red,
+            CardColor::Green => ProtoColor::Green,
+            CardColor::White => ProtoColor::White,
+            CardColor::Blue => ProtoColor::Blue,
+            CardColor::Yellow => ProtoColor::Yellow,
+        };
+
+        proto_color as i32
+    }
+}
+
+impl IntoProto<u32> for CardValue {
+    fn into_proto(self) -> u32 {
+        match self {
+            CardValue::Wager => 1,
+            CardValue::Two => 2,
+            CardValue::Three => 3,
+            CardValue::Four => 4,
+            CardValue::Five => 5,
+            CardValue::Six => 6,
+            CardValue::Seven => 7,
+            CardValue::Eight => 8,
+            CardValue::Nine => 9,
+            CardValue::Ten => 10,
+        }
+    }
+}
+
+// Now I'm getting lazy, implementing From/Into...
+impl TryIntoProto<ProtoGetGameStateReply> for GameState {
+    fn try_into_proto(self) -> Result<ProtoGetGameStateReply, Status> {
+        let proto_game = ProtoGame {
+            my_hand: convert_hand(self.my_hand()),
+            my_plays: Some(convert_plays(self.game_board().my_plays())),
+            opponent_plays: Some(convert_plays(self.game_board().op_plays())),
+            discard_pile: Some(convert_discard_pile(self.game_board().neutral_draw_pile())),
+            draw_pile_cards_remaining: *self.game_board().draw_pile_cards_remaining() as u32,
+            status: convert_game_status(self.status(), *self.is_my_turn()) as i32,
+            my_score: *self.game_board().my_score(),
+            op_score: *self.game_board().op_score(),
+        };
+
+        Ok(ProtoGetGameStateReply {
+            game: Some(proto_game),
+            opponent_player_id: "TODO".to_string()
+        })
+    }
+}
+
+fn convert_hand(hand: &Vec<DecoratedCard>) -> Vec<ProtoCard> {
+    hand.iter()
+        .map(|card| card.card().into_proto())
+        .collect()
+}
+
+fn convert_plays(plays: &HashMap<CardColor, Vec<CardValue>>) -> ProtoPlayHistory {
+    let inner_converter: Fn(CardColor) -> Vec<u32> = |color| {
+        plays.get(&color)
+            .map(|values| convert_card_value_vec(values))
+            .unwrap_or(vec![])
+    };
+
+    ProtoPlayHistory {
+        red: inner_converter(CardColor::Red),
+        blue: inner_converter(CardColor::Blue),
+        green: inner_converter(CardColor::Green),
+        white: inner_converter(CardColor::White),
+        yellow: inner_converter(CardColor::Yellow),
+    }
+}
+
+fn convert_card_value_vec(card_values: &Vec<CardValue>) -> Vec<u32> {
+    card_values
+        .iter()
+        .map(|card_value| card_value.into_proto())
+        .collect()
+}
+
+fn convert_discard_pile(neutral_draw_pile: &HashMap<CardColor, (CardValue, usize)>) -> ProtoDiscardPile {
+    ProtoDiscardPile {
+        red: neutral_draw_pile.get(&CardColor::Red).map(|(value, num_cards)| convert_discard_pile_surface(*value, *num_cards)),
+        green: neutral_draw_pile.get(&CardColor::Green).map(|(value, num_cards)| convert_discard_pile_surface(*value, *num_cards)),
+        white: neutral_draw_pile.get(&CardColor::White).map(|(value, num_cards)| convert_discard_pile_surface(*value, *num_cards)),
+        blue: neutral_draw_pile.get(&CardColor::Blue).map(|(value, num_cards)| convert_discard_pile_surface(*value, *num_cards)),
+        yellow: neutral_draw_pile.get(&CardColor::Yellow).map(|(value, num_cards)| convert_discard_pile_surface(*value, *num_cards)),
+    }
+}
+
+fn convert_discard_pile_surface(value: CardValue, num_cards: usize) -> ProtoDiscardPileSurface {
+    ProtoDiscardPileSurface {
+        value: value.into_proto(),
+        remaining: num_cards as u32,
+    }
+}
+
+fn convert_game_status(status: &GameStatus, is_your_turn: bool) -> ProtoGameStatus {
+    match status {
+        GameStatus::InProgress => if is_your_turn {
+            ProtoGameStatus::YourTurn
+        } else {
+            ProtoGameStatus::OpponentTurn
+        },
+        GameStatus::Complete(result) => match result {
+            GameResult::Win => ProtoGameStatus::EndWin,
+            GameResult::Lose => ProtoGameStatus::EndLose,
+            GameResult::Draw => ProtoGameStatus::EndDraw,
+        },
+    }
+}

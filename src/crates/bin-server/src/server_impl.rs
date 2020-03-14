@@ -73,10 +73,16 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let inner = request.into_inner();
         println!("Rcv: {:?}", inner);
 
-        let reply = ProtoGetGameStateReply {
-            game: None,
-            opponent_player_id: "".to_string()
+        let (game_id, player_id) = WireTypeConverter::convert_get_game_state_req(inner)?;
+
+        let result = {
+            match self.game_api.lock() {
+                Ok(api) => api.get_game_state(game_id, player_id),
+                Err(e) => Err(convert_lock_error(e)),
+            }
         };
+        let game_state = result.map_err(|e| WireTypeConverter::convert_error(e))?;
+        let reply = WireTypeConverter::convert_game_state(game_state)?;
 
         Ok(Response::new(reply))
     }
