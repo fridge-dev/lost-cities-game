@@ -1,7 +1,9 @@
 use types::{GameError, GameState, Play};
-use crate::handler::GameApiHandler;
+use crate::handler::StorageBackedGameApi;
 use std::sync::{Arc, Mutex};
+use crate::backend_client::BackendClient;
 
+mod backend_client;
 mod handler;
 
 /// Maybe having this as a trait is a little too OOP? this is a learning experiment.
@@ -31,10 +33,13 @@ pub trait GameApi {
 /// See:
 /// * https://stackoverflow.com/a/27570064
 /// * https://stackoverflow.com/questions/28621980/what-are-the-actual-runtime-performance-costs-of-dynamic-dispatch
-pub fn new_game_api() -> Box<dyn GameApi> {
-    Box::new(GameApiHandler::new())
+pub fn new_frontend_game_api() -> Box<dyn GameApi> {
+    match BackendClient::new() {
+        Ok(client) => Box::new(client),
+        Err(e) => panic!(format!("Failed to connect to backend. AAAAAA! {:?}", e)),
+    }
 }
 
-pub fn new_game_api_sync() -> Arc<Mutex<dyn GameApi + Send>> {
-    Arc::new(Mutex::new(GameApiHandler::new()))
+pub fn new_backend_game_api() -> Arc<Mutex<dyn GameApi + Send>> {
+    Arc::new(Mutex::new(StorageBackedGameApi::new()))
 }

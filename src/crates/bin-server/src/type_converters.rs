@@ -83,6 +83,9 @@ impl WireTypeConverter {
                 println!("ERROR: Internal failure caused by '{:?}'", cause);
                 Status::new(Code::Internal, format!("Internal server failure"))
             },
+            GameError::BackendFault => panic!("BackendFault should only be used by FE"),
+            GameError::BackendTimeout => panic!("BackendTimeout should only be used by FE"),
+            GameError::BackendUnknown => panic!("BackendUnknown should only be used by FE"),
         }
     }
 

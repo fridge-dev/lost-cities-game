@@ -5,7 +5,7 @@ use client::cli;
 use client::state_machine::Alternator;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut game_api = api::new_game_api();
+    let mut game_api = api::new_frontend_game_api();
 
     // Game setup
     let p1_id = cli::prompt_for_input("Please enter Player 1's name: ");

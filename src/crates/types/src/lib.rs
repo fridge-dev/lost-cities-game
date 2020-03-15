@@ -380,6 +380,9 @@ pub enum GameError {
     NotFound(&'static str),
     GameAlreadyMatched,
     InvalidPlay(Reason),
+    BackendFault,
+    BackendTimeout,
+    BackendUnknown,
 }
 
 /// Causes of `GameError::Internal` errors.
@@ -437,6 +440,9 @@ impl Display for GameError {
             GameError::Internal(cause) => f.write_str(&format!("Unexpected error: {:?}", cause)),
             GameError::GameAlreadyMatched => f.write_str("No room for u."),
             GameError::InvalidPlay(reason) => f.write_str(&format!("You cannot make that play: {:?}", reason)),
+            GameError::BackendFault => f.write_str("Calling backend failed. CRAP."),
+            GameError::BackendTimeout => f.write_str("Timeout while calling backend."),
+            GameError::BackendUnknown => f.write_str("Unknown backend failure. Should probably handle this branch before it gets to this point."),
         }
     }
 }

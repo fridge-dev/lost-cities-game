@@ -7,14 +7,14 @@ use rules::deck::DeckFactory;
 use std::collections::HashMap;
 use rules::{plays, scoring, endgame};
 
-pub struct GameApiHandler {
+pub struct StorageBackedGameApi {
     storage: Box<dyn GameStore + Send>,
     deck_factory: DeckFactory,
 }
 
-impl GameApiHandler {
+impl StorageBackedGameApi {
     pub fn new() -> Self {
-        GameApiHandler {
+        StorageBackedGameApi {
             storage: Box::new(LocalStore::new()),
             deck_factory: DeckFactory::new(),
         }
@@ -90,7 +90,7 @@ impl GameApiHandler {
     }
 }
 
-impl GameApi for GameApiHandler {
+impl GameApi for StorageBackedGameApi {
 
     fn host_game(&mut self, p1_id: String) -> Result<String, GameError> {
         let game_id = create_game_id();

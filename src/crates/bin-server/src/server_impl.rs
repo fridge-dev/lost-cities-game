@@ -19,7 +19,7 @@ pub struct LostCitiesBackendServer {
 impl LostCitiesBackendServer {
     pub fn new() -> Self {
         LostCitiesBackendServer {
-            game_api: api::new_game_api_sync()
+            game_api: api::new_backend_game_api()
         }
     }
 }
