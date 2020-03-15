@@ -38,30 +38,30 @@ Cons:
 
 Layers:
 1. Main event loop
-  * Types: cli (strings)
-  * Used by: -
-  * Uses: (2) Client app API
+    * Types: cli (strings)
+    * Used by: -
+    * Uses: (2) Client app API
 1. Client app API
-  * Types: api (client app types)
-    * Implements Display
-  * Used by: (1)
-  * Uses: (3) tonic client
+    * Types: api (client app types)
+        * Implements Display
+    * Used by: (1)
+    * Uses: (3) tonic client
 1. Tonic client
-  * Types: wire_types (protobuf)
-  * Used by: (2)
-  * Uses: -
+    * Types: wire_types (protobuf)
+    * Used by: (2)
+    * Uses: -
 1. Tonic server
-  * Types: wire_types (protobuf)
-  * Used by: (5)
-  * Uses: -
+    * Types: wire_types (protobuf)
+    * Used by: (5)
+    * Uses: -
 1. Server app
-  * Types: api (server app types)
-  * Used by: -
-  * Uses: (6) storage
+    * Types: api (server app types)
+    * Used by: -
+    * Uses: (6) storage
 1. Storage
-  * Types: storage
-  * Used by: (5)
-  * Uses: - (memory?, disk?, DDB?)
+    * Types: storage
+    * Used by: (5)
+    * Uses: - (memory?, disk?, DDB?)
 
 Rules: applies to (2) types and (5) types
 
