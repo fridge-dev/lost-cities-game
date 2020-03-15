@@ -71,15 +71,14 @@ Your hand:
 Note: All of these should be done after BE/FE are split into separate processes.
 1. Implement main.rs state machine (turns, end game)
 1. Improve turn selection UI
-  * Sort cards in hand
-  * Add review section
-  * Add better selection mechanism
-  * Add turn indicator
+    * Sort cards in hand
+    * Add review section
+    * Add better selection mechanism
+    * Add turn indicator
 1. Add duplicate rule checks on the FE
 1. Improve board drawer
 
 **General**
-1. Split game into separate backend and frontend processes.
 1. Figure out best way to model error propagation to top level.
 1. Figure out how to make sub-crates tests run during top-level cargo build
 1. Add automated test of a game
@@ -99,3 +98,4 @@ Note: All of these should be done after BE/FE are split into separate processes.
 1. Rules: scoring
 1. Implement main.rs board drawer
 1. Rules: handle end game
+1. Split game into separate backend and frontend processes.

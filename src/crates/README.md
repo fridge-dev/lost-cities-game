@@ -30,9 +30,9 @@ Pros:
 
 Cons:
 * Can't implement std lib Traits (From, Into) on GameApi types when they're defined outside of crate
-  * Could be solved by generating the protobuf types in each bin crate.
+    * Could be solved by generating the protobuf types in each bin crate.
 * The kind of errors are different in Frontend/Backend
-  * Could be solved with generics.
+    * Could be solved with generics.
 
 ## Ideal end state
 
