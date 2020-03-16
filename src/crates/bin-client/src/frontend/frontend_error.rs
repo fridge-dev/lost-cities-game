@@ -4,6 +4,8 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum ClientGameError {
+    NotFound,
+    UserInvalidArg,
     BackendFault,
     BackendTimeout,
     BackendUnknown,
@@ -17,6 +19,8 @@ impl Display for ClientGameError {
             ClientGameError::BackendFault => f.write_str("Calling backend failed. CRAP."),
             ClientGameError::BackendTimeout => f.write_str("Timeout while calling backend."),
             ClientGameError::BackendUnknown => f.write_str("Unknown backend failure. Should probably handle this branch before it gets to this point."),
+            ClientGameError::UserInvalidArg => f.write_str("User fricked up."),
+            ClientGameError::NotFound => f.write_str("Crap, where'd it go?")
         }
     }
 }

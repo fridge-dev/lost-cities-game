@@ -10,9 +10,14 @@ path = "src/main.rs"
 
 [dependencies]
 # Local repo dependencies
-api = { path = "../api" }
 game-api = { path = "../game-api" }
-# Client has access to server types, which is weird. Figure out how to export cargo "features"
+# Client has access to tonic server, which is weird. Figure out how to export cargo "features"
 wire-api = { path = "../wire-api" }
 
 # External dependencies
+futures = "=0.3.4"
+tokio = { version = "0.2", features = ["full"] }
+
+# frontend mod only
+async-trait = "0.1.24"
+tonic = "0.1.1"

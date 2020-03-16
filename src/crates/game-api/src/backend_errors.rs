@@ -2,6 +2,8 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::fmt;
 
+/// THis is the legacy GameError.
+/// TODO delete this once unused
 #[derive(Debug)]
 pub enum BackendGameError {
     Internal(Cause),

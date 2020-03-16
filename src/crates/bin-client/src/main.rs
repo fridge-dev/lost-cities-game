@@ -1,31 +1,32 @@
 use std::error::Error;
 use game_api::types::{Play, Card, CardColor, CardTarget, DrawPile, GameState, GameStatus, GameResult};
-use api::GameApi;
-use client::cli;
+use client::{cli, frontend};
 use client::state_machine::Alternator;
-use game_api::backend_errors::BackendGameError;
+use client::frontend::frontend_error::ClientGameError;
+use game_api::api::GameApi2;
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let mut game_api = api::new_frontend_game_api();
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    let mut game_api = frontend::new_frontend_game_api();
 
     // Game setup
     let p1_id = cli::prompt_for_input("Please enter Player 1's name: ");
-    let game_id = game_api.host_game(p1_id.clone())?;
+    let game_id = game_api.host_game(p1_id.clone()).await?;
     println!("Created Game ID = {}", game_id);
 
     let p2_id = cli::prompt_for_input("Please enter Player 2's name: ");
-    game_api.join_game(game_id.clone(), p2_id.clone())?;
+    game_api.join_game(game_id.clone(), p2_id.clone()).await?;
 
     println!();
     println!("Welcome. This game will feature '{}' vs '{}'.", p1_id, p2_id);
     println!();
 
-    let mut player_turns = create_alternator(&game_api, game_id.clone(), &p1_id, &p2_id)?;
+    let mut player_turns = create_alternator(&mut game_api, game_id.clone(), &p1_id, &p2_id).await?;
 
     // Game loop
     loop {
         let current_player_id: &str = player_turns.next();
-        let game_state = game_api.get_game_state(game_id.clone(), current_player_id.to_owned())?;
+        let game_state = game_api.get_game_state(game_id.clone(), current_player_id.to_owned()).await?;
         println!("{}", game_state);
 
         // End game check
@@ -43,24 +44,24 @@ fn main() -> Result<(), Box<dyn Error>> {
             card.clone(),
             card_target,
             draw_pile,
-        ))?;
+        )).await?;
     }
 
     println!("Thanks for playing! Goodbye.");
     Ok(())
 }
 
-fn create_alternator<'a>(
-    game_api: &Box<dyn GameApi>,
+async fn create_alternator<'a>(
+    game_api: &mut Box<dyn GameApi2<ClientGameError>>,
     game_id: String,
     p1_id: &'a String,
     p2_id: &'a String
-) -> Result<Alternator<'a, String>, BackendGameError> {
+) -> Result<Alternator<'a, String>, ClientGameError> {
     let mut player_turns = Alternator::new(p1_id, p2_id);
 
     // Tick player turn order forward if player 2 is supposed to start.
-    if !game_api.get_game_state(game_id.clone(), p1_id.to_owned())?.is_my_turn() {
-        assert!(game_api.get_game_state(game_id, p2_id.to_owned())?.is_my_turn());
+    if !game_api.get_game_state(game_id.clone(), p1_id.to_owned()).await?.is_my_turn() {
+        assert!(game_api.get_game_state(game_id, p2_id.to_owned()).await?.is_my_turn());
         player_turns.next();
     }
 

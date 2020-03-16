@@ -311,7 +311,7 @@ impl Play {
 }
 
 /// Where to *play* a card.
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub enum CardTarget {
     Player,
     Neutral,

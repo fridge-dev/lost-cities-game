@@ -256,3 +256,12 @@ impl From<GameState> for ProtoGetGameStateReply {
         }
     }
 }
+
+impl From<CardTarget> for ProtoPlayTarget {
+    fn from(card_target: CardTarget) -> Self {
+        match card_target {
+            CardTarget::Player => ProtoPlayTarget::PlayerBoard,
+            CardTarget::Neutral => ProtoPlayTarget::Discard,
+        }
+    }
+}
