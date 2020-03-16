@@ -40,19 +40,20 @@ fn compute_score_for_color(column: &Vec<CardValue>) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::convert::TryFrom;
 
-    fn compute_score_test_helper(expected_score: i32, previous_plays_vec: Vec<(CardColor, u8)>) {
+    fn compute_score_test_helper(expected_score: i32, previous_plays_vec: Vec<(CardColor, u32)>) {
         let previous_plays = previous_plays(previous_plays_vec);
 
         assert_eq!(compute_score(&previous_plays), expected_score, "Plays {:?} did not match expected score {}", &previous_plays, expected_score);
     }
 
-    fn previous_plays(previous_plays_vec: Vec<(CardColor, u8)>) -> HashMap<CardColor, Vec<CardValue>> {
+    fn previous_plays(previous_plays_vec: Vec<(CardColor, u32)>) -> HashMap<CardColor, Vec<CardValue>> {
         let mut previous_plays_map: HashMap<CardColor, Vec<CardValue>> = HashMap::new();
         for (card_color, card_value) in previous_plays_vec {
             previous_plays_map.entry(card_color)
                 .or_insert_with(|| Vec::new())
-                .push(CardValue::from_int(card_value));
+                .push(CardValue::try_from(card_value).unwrap());
         }
 
         for (_, card_value_vec) in &mut previous_plays_map {
@@ -62,10 +63,10 @@ mod tests {
         return previous_plays_map;
     }
 
-    fn compute_score_for_color_test_helper(expected_score: i32, card_values: Vec<u8>) {
+    fn compute_score_for_color_test_helper(expected_score: i32, card_values: Vec<u32>) {
         let mut cards = Vec::new();
         for val in card_values {
-            cards.push(CardValue::from_int(val));
+            cards.push(CardValue::try_from(val).unwrap());
         }
 
         assert_eq!(compute_score_for_color(&cards), expected_score, "Column {:?} did not match expected score {}", &cards, expected_score);

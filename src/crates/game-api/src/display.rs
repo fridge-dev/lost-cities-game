@@ -3,6 +3,8 @@ use crate::types::{GameBoard, GameState, Card, CardColor, CardValue, DecoratedCa
 use std::fmt::{Display, Formatter};
 use std::fmt;
 use std::collections::HashMap;
+#[allow(unused_imports)] // Needs to be in scope, despite not used
+use std::convert::TryFrom;
 
 const BOARD_ROW_GRID_LINE: &str = "+-----------+-----------+-----------+-----------+-----------+";
 const BOARD_ROW_GRID_BLANK: &str = "|           |           |           |           |           |";
@@ -300,40 +302,40 @@ impl CardValue {
 mod tests {
     use super::*;
     use std::collections::HashMap;
-    use crate::app_layer::types::GameStatus;
+    use crate::types::GameStatus;
 
     #[test]
     fn eyeball_stdout_test() {
         let mut my_plays = HashMap::new();
         my_plays.insert(CardColor::Red, vec![
-            CardValue::from_int(1),
-            CardValue::from_int(1),
-            CardValue::from_int(3),
-            CardValue::from_int(4),
-            CardValue::from_int(5),
+            CardValue::try_from(1).unwrap(),
+            CardValue::try_from(1).unwrap(),
+            CardValue::try_from(3).unwrap(),
+            CardValue::try_from(4).unwrap(),
+            CardValue::try_from(5).unwrap(),
         ]);
         my_plays.insert(CardColor::Yellow, vec![
-            CardValue::from_int(9),
-            CardValue::from_int(10),
+            CardValue::try_from(9).unwrap(),
+            CardValue::try_from(10).unwrap(),
         ]);
 
         let mut op_plays = HashMap::new();
         op_plays.insert(CardColor::Blue, vec![
-            CardValue::from_int(1),
-            CardValue::from_int(1),
-            CardValue::from_int(3),
-            CardValue::from_int(4),
-            CardValue::from_int(5),
+            CardValue::try_from(1).unwrap(),
+            CardValue::try_from(1).unwrap(),
+            CardValue::try_from(3).unwrap(),
+            CardValue::try_from(4).unwrap(),
+            CardValue::try_from(5).unwrap(),
         ]);
         op_plays.insert(CardColor::Green, vec![
-            CardValue::from_int(9),
-            CardValue::from_int(10),
+            CardValue::try_from(9).unwrap(),
+            CardValue::try_from(10).unwrap(),
         ]);
 
         let mut neutral_draw_pile = HashMap::new();
-        neutral_draw_pile.insert(CardColor::White, (CardValue::from_int(1), 3));
-        neutral_draw_pile.insert(CardColor::Yellow, (CardValue::from_int(4), 1));
-        neutral_draw_pile.insert(CardColor::Green, (CardValue::from_int(10), 12));
+        neutral_draw_pile.insert(CardColor::White, (CardValue::try_from(1).unwrap(), 3));
+        neutral_draw_pile.insert(CardColor::Yellow, (CardValue::try_from(4).unwrap(), 1));
+        neutral_draw_pile.insert(CardColor::Green, (CardValue::try_from(10).unwrap(), 12));
 
         let game_board = GameBoard::new(
             my_plays,
@@ -345,14 +347,14 @@ mod tests {
         );
 
         let my_hand = vec![
-            Card::from_int(CardColor::White, 1),
-            Card::from_int(CardColor::White, 5),
-            Card::from_int(CardColor::White, 10),
-            Card::from_int(CardColor::Blue, 3),
-            Card::from_int(CardColor::Green, 7),
-            Card::from_int(CardColor::Red, 7),
-            Card::from_int(CardColor::Yellow, 7),
-            Card::from_int(CardColor::Yellow, 9),
+            Card::new(CardColor::White, CardValue::try_from(1).unwrap()),
+            Card::new(CardColor::White, CardValue::try_from(5).unwrap()),
+            Card::new(CardColor::White, CardValue::try_from(10).unwrap()),
+            Card::new(CardColor::Blue, CardValue::try_from(3).unwrap()),
+            Card::new(CardColor::Green, CardValue::try_from(7).unwrap()),
+            Card::new(CardColor::Red, CardValue::try_from(7).unwrap()),
+            Card::new(CardColor::Yellow, CardValue::try_from(7).unwrap()),
+            Card::new(CardColor::Yellow, CardValue::try_from(9).unwrap()),
         ];
         let my_hand = my_hand.iter()
             .map(|c| DecoratedCard::new(*c, true))

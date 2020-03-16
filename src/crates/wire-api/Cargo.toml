@@ -5,6 +5,7 @@ authors = ["Alec Von Arx <al.vonarx@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+game-api = { path = "../game-api" }
 tonic = "0.1.1"
 prost = "0.6.1"
 

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::fmt;
+use std::convert::TryFrom;
 
 pub struct GameMetadata {
     game_id: String,
@@ -203,11 +204,6 @@ impl Card {
         }
     }
 
-    /// This method is probably only for UT readability. Not sure where is the best place to put such methods.
-    pub fn from_int(card_color: CardColor, card_value: u8) -> Self {
-        Card::new(card_color, CardValue::from_int(card_value))
-    }
-
     pub fn card_color(&self) -> &CardColor {
         &self.card_color
     }
@@ -228,7 +224,8 @@ pub enum CardColor {
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum CardValue {
-    Wager,
+    // Force enum variants i32 repr to start from 1.
+    Wager = 1,
     Two,
     Three,
     Four,
@@ -240,10 +237,12 @@ pub enum CardValue {
     Ten,
 }
 
-impl CardValue {
-    /// This method is probably only for UT readability. Not sure where is the best place to put such methods.
-    pub fn from_int(card_value: u8) -> Self {
-        match card_value {
+/// IMPORTANT: Wire model uses this, so client and server compatibility are dependent on this not changing.
+impl TryFrom<u32> for CardValue {
+    type Error = String;
+
+    fn try_from(card_value: u32) -> Result<Self, Self::Error> {
+        Ok(match card_value {
             1 => CardValue::Wager,
             2 => CardValue::Two,
             3 => CardValue::Three,
@@ -254,8 +253,14 @@ impl CardValue {
             8 => CardValue::Eight,
             9 => CardValue::Nine,
             10 => CardValue::Ten,
-            _ => panic!(format!("Illegal card value supplied: {}", card_value)),
-        }
+            _ => return Err(format!("Illegal card value supplied: {}", card_value)),
+        })
+    }
+}
+
+impl From<CardValue> for u32 {
+    fn from(card_value: CardValue) -> Self {
+        card_value as u32
     }
 }
 
@@ -319,3 +324,30 @@ pub enum DrawPile {
     Neutral(CardColor),
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn card_value_converter() {
+        let card_value_variants = vec![
+            CardValue::Wager,
+            CardValue::Two,
+            CardValue::Three,
+            CardValue::Four,
+            CardValue::Five,
+            CardValue::Six,
+            CardValue::Seven,
+            CardValue::Eight,
+            CardValue::Nine,
+            CardValue::Ten,
+        ];
+
+        for card_value in card_value_variants {
+            let int_value: u32 = card_value.into();
+            assert_eq!(CardValue::try_from(int_value), Ok(card_value));
+        }
+
+        assert!(CardValue::try_from(0).is_err())
+    }
+}

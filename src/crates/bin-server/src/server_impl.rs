@@ -2,10 +2,10 @@ use tonic::{Request, Response, Status};
 use wire_api::proto_lost_cities::proto_lost_cities_server::ProtoLostCities;
 use wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply};
 use api::GameApi;
-use crate::type_converters::WireTypeConverter;
 use std::sync::{Mutex, PoisonError};
 use game_api::backend_errors::{BackendGameError, Cause};
 use tonic::codegen::Arc;
+use wire_api::type_converters;
 
 /// Backend server is the entry point which will implement the gRPC server type.
 pub struct LostCitiesBackendServer {
@@ -35,7 +35,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let inner = request.into_inner();
         println!("Rcv: {:?}", inner);
 
-        let player_id = WireTypeConverter::convert_host_game_req(inner)?;
+        let player_id = type_converters::try_from_proto_host_game_req(inner)?;
 
         let result = {
             match self.game_api.lock() {
@@ -43,7 +43,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
                 Err(e) => Err(convert_lock_error(e)),
             }
         };
-        let game_id = result.map_err(|e| WireTypeConverter::convert_error(e))?;
+        let game_id = result.map_err(|e| type_converters::into_proto_status(e))?;
 
         Ok(Response::new(ProtoHostGameReply {
             game_id
@@ -54,7 +54,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let inner = request.into_inner();
         println!("Rcv: {:?}", inner);
 
-        let (game_id, player_id) = WireTypeConverter::convert_join_game_req(inner)?;
+        let (game_id, player_id) = type_converters::try_from_proto_join_game_req(inner)?;
 
         let result = {
             match self.game_api.lock() {
@@ -62,7 +62,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
                 Err(e) => Err(convert_lock_error(e)),
             }
         };
-        result.map_err(|e| WireTypeConverter::convert_error(e))?;
+        result.map_err(|e| type_converters::into_proto_status(e))?;
 
         Ok(Response::new(ProtoJoinGameReply {}))
     }
@@ -71,7 +71,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let inner = request.into_inner();
         println!("Rcv: {:?}", inner);
 
-        let (game_id, player_id) = WireTypeConverter::convert_get_game_state_req(inner)?;
+        let (game_id, player_id) = type_converters::try_from_proto_get_game_state_req(inner)?;
 
         let result = {
             match self.game_api.lock() {
@@ -79,17 +79,16 @@ impl ProtoLostCities for LostCitiesBackendServer {
                 Err(e) => Err(convert_lock_error(e)),
             }
         };
-        let game_state = result.map_err(|e| WireTypeConverter::convert_error(e))?;
-        let reply = WireTypeConverter::convert_game_state(game_state)?;
+        let game_state = result.map_err(|e| type_converters::into_proto_status(e))?;
 
-        Ok(Response::new(reply))
+        Ok(Response::new(game_state.into()))
     }
 
     async fn play_card(&self, request: Request<ProtoPlayCardReq>) -> Result<Response<ProtoPlayCardReply>, Status> {
         let inner = request.into_inner();
         println!("Rcv: {:?}", inner);
 
-        let play = WireTypeConverter::convert_play_card_req(inner)?;
+        let play = type_converters::try_from_proto_play_card_req(inner)?;
 
         let result = {
             match self.game_api.lock() {
@@ -97,7 +96,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
                 Err(e) => Err(convert_lock_error(e)),
             }
         };
-        result.map_err(|e| WireTypeConverter::convert_error(e))?;
+        result.map_err(|e| type_converters::into_proto_status(e))?;
 
         Ok(Response::new(ProtoPlayCardReply {}))
     }

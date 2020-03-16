@@ -2,6 +2,8 @@
 /// E.g. *playing* a card, drawing a card.
 use game_api::types::{Card, CardColor, CardValue, DecoratedCard};
 use std::collections::HashMap;
+#[allow(unused_imports)] // Needs to be in scope, despite not used
+use std::convert::TryFrom;
 
 pub fn decorate_hand(hand: Vec<Card>, previous_plays: &HashMap<CardColor, Vec<CardValue>>) -> Vec<DecoratedCard> {
     hand.iter()
@@ -49,12 +51,12 @@ pub fn is_card_playable(
 mod tests {
     use super::*;
 
-    fn previous_plays(previous_plays_vec: Vec<(CardColor, u8)>) -> HashMap<CardColor, Vec<CardValue>> {
+    fn previous_plays(previous_plays_vec: Vec<(CardColor, u32)>) -> HashMap<CardColor, Vec<CardValue>> {
         let mut previous_plays_map: HashMap<CardColor, Vec<CardValue>> = HashMap::new();
         for (card_color, card_value) in previous_plays_vec {
             previous_plays_map.entry(card_color)
                 .or_insert_with(|| Vec::new())
-                .push(CardValue::from_int(card_value));
+                .push(CardValue::try_from(card_value).unwrap());
         }
 
         for (_, card_value_vec) in &mut previous_plays_map {
@@ -66,8 +68,8 @@ mod tests {
 
     // Generic test utility to assert various cases
     fn test_get_allowed_plays(
-        previous_plays_vec: Vec<(CardColor, /* Card color */ u8)>,
-        hand_with_expected_playable: Vec<(CardColor, /* Card color */ u8, /* Expected playable */ bool)>
+        previous_plays_vec: Vec<(CardColor, /* Card value */ u32)>,
+        hand_with_expected_playable: Vec<(CardColor, /* Card value */ u32, /* Expected playable */ bool)>
     ) {
         // 1. Build the 'hand' and 'expected_output' vecs.
         let mut hand: Vec<Card> = Vec::new();
@@ -77,7 +79,7 @@ mod tests {
             if expected_card_playable.2 {
                 expected_output.push(hand.len());
             }
-            hand.push(Card::from_int(expected_card_playable.0, expected_card_playable.1));
+            hand.push(Card::new(expected_card_playable.0, CardValue::try_from(expected_card_playable.1).unwrap()));
         }
 
         // 2. Build the 'previous_plays' map
