@@ -6,8 +6,7 @@ edition = "2018"
 
 [dependencies]
 # Local repo dependencies
-storage = { path = "../storage" }
-types = { path = "../types" }
+game-api = { path = "../game-api" }
 
 # External dependencies
 rand = "=0.7.3"

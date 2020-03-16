@@ -1,19 +1,18 @@
 use std::collections::HashMap;
 use tonic::{Status, Code};
-use types::{
+use game_api::types::{
     Play,
     Card,
     CardColor,
     CardValue,
     CardTarget,
     DrawPile,
-    GameError,
     GameState,
     GameStatus,
     GameResult,
     DecoratedCard
 };
-use wire_types::proto_lost_cities::{
+use wire_api::proto_lost_cities::{
     ProtoHostGameReq,
     ProtoJoinGameReq,
     ProtoGetGameStateReq,
@@ -29,6 +28,7 @@ use wire_types::proto_lost_cities::{
     ProtoDiscardPileSurface,
     ProtoGameStatus
 };
+use game_api::backend_errors::BackendGameError;
 
 /// Namespace all public methods to this single struct.
 /// Idk if this is a good pattern; we'll see.
@@ -74,18 +74,15 @@ impl WireTypeConverter {
         Ok(Play::try_from_proto(req)?)
     }
 
-    pub fn convert_error(game_error: GameError) -> Status {
+    pub fn convert_error(game_error: BackendGameError) -> Status {
         match game_error {
-            GameError::NotFound(resource) => Status::new(Code::NotFound, format!("Resource {} not found.", resource)),
-            GameError::GameAlreadyMatched => Status::new(Code::AlreadyExists, format!("The game you attempted to join is full.")),
-            GameError::InvalidPlay(reason) => Status::new(Code::InvalidArgument, format!("Can't play card. {}", reason)),
-            GameError::Internal(cause) => {
+            BackendGameError::NotFound(resource) => Status::new(Code::NotFound, format!("Resource {} not found.", resource)),
+            BackendGameError::GameAlreadyMatched => Status::new(Code::AlreadyExists, format!("The game you attempted to join is full.")),
+            BackendGameError::InvalidPlay(reason) => Status::new(Code::InvalidArgument, format!("Can't play card. {}", reason)),
+            BackendGameError::Internal(cause) => {
                 println!("ERROR: Internal failure caused by '{:?}'", cause);
                 Status::new(Code::Internal, format!("Internal server failure"))
             },
-            GameError::BackendFault => panic!("BackendFault should only be used by FE"),
-            GameError::BackendTimeout => panic!("BackendTimeout should only be used by FE"),
-            GameError::BackendUnknown => panic!("BackendUnknown should only be used by FE"),
         }
     }
 

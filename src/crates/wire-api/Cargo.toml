@@ -1,5 +1,5 @@
 [package]
-name = "wire_types"
+name = "wire-api"
 version = "0.1.0"
 authors = ["Alec Von Arx <al.vonarx@gmail.com>"]
 edition = "2018"

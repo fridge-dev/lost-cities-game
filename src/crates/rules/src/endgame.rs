@@ -1,4 +1,4 @@
-use types::{GameBoard, GameStatus, GameResult};
+use game_api::types::{GameBoard, GameStatus, GameResult};
 
 pub fn get_game_status(game_board: &GameBoard) -> GameStatus {
     if *game_board.draw_pile_cards_remaining() > 0 {

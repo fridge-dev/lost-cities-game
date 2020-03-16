@@ -68,7 +68,6 @@ Your hand:
 1. See if it's easily possible to separate storage types from API types
 
 **Frontend**
-Note: All of these should be done after BE/FE are split into separate processes.
 1. Implement main.rs state machine (turns, end game)
 1. Improve turn selection UI
     * Sort cards in hand
@@ -79,6 +78,7 @@ Note: All of these should be done after BE/FE are split into separate processes.
 1. Improve board drawer
 
 **General**
+1. Delete 'api' crate and refactor client/server GameApi usage.
 1. Figure out best way to model error propagation to top level.
 1. Figure out how to make sub-crates tests run during top-level cargo build
 1. Add automated test of a game

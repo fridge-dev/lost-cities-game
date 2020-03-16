@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 use tonic::transport::Server;
-use wire_types::proto_lost_cities::proto_lost_cities_server::ProtoLostCitiesServer;
+use wire_api::proto_lost_cities::proto_lost_cities_server::ProtoLostCitiesServer;
 use server::server_impl::LostCitiesBackendServer;
 
 #[tokio::main]

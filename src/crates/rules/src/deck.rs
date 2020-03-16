@@ -1,4 +1,4 @@
-use types::{Card, CardColor, CardValue};
+use game_api::types::{Card, CardColor, CardValue};
 use rand::thread_rng;
 use crate::rand_util::PrngRand;
 use rand_core::RngCore;

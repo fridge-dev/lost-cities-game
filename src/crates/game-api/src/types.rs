@@ -1,9 +1,6 @@
 use std::collections::HashMap;
-use std::fmt::{Debug, Display, Formatter};
-use std::error::Error;
-use core::fmt;
-
-mod display;
+use std::fmt::{Debug, Formatter};
+use std::fmt;
 
 pub struct GameMetadata {
     game_id: String,
@@ -262,57 +259,6 @@ impl CardValue {
     }
 }
 
-/// TODO This is only needed for UTs ... Find a suitable replacement or remove this comment if this is really the best.
-mod rand_utils {
-    use rand::{
-        distributions::{Distribution, Standard},
-        Rng,
-    };
-    use crate::{Card, CardColor, CardValue};
-
-    impl Distribution<Card> for Standard {
-        fn sample<R: Rng + ?Sized>(&self, _rng: &mut R) -> Card {
-            Card {
-                card_color: rand::random(),
-                card_value: rand::random(),
-            }
-        }
-    }
-
-    impl Distribution<CardColor> for Standard {
-        fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> CardColor {
-            let arr = [
-                CardColor::Red,
-                CardColor::Green,
-                CardColor::White,
-                CardColor::Blue,
-                CardColor::Yellow,
-            ];
-            let index: usize = rng.gen_range(0, arr.len());
-            arr[index]
-        }
-    }
-
-    impl Distribution<CardValue> for Standard {
-        fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> CardValue {
-            let arr = [
-                CardValue::Two,
-                CardValue::Three,
-                CardValue::Four,
-                CardValue::Five,
-                CardValue::Six,
-                CardValue::Seven,
-                CardValue::Eight,
-                CardValue::Nine,
-                CardValue::Ten,
-                CardValue::Wager,
-            ];
-            let index: usize = rng.gen_range(0, arr.len());
-            arr[index]
-        }
-    }
-}
-
 pub struct Play {
     game_id: String,
     player_id: String,
@@ -373,76 +319,3 @@ pub enum DrawPile {
     Neutral(CardColor),
 }
 
-// Naming starts to get confusing here... GL future me!
-#[derive(Debug)]
-pub enum GameError {
-    Internal(Cause),
-    NotFound(&'static str),
-    GameAlreadyMatched,
-    InvalidPlay(Reason),
-    BackendFault,
-    BackendTimeout,
-    BackendUnknown,
-}
-
-/// Causes of `GameError::Internal` errors.
-#[derive(Debug)]
-pub enum Cause {
-
-    /// Error caused by unknown internal behavior. This is the default case.
-    Internal(&'static str),
-
-    /// Error caused by internal/dependency storage layer
-    Storage(&'static str, Box<dyn Error>),
-
-    /// Error caused by some impossible circumstance, but an error is needed for rust code to compile.
-    ///
-    /// Example:
-    /// ```
-    /// use types::{GameError, Cause};
-    /// let mut v = vec![1, 2, 3];
-    /// let first = v.pop().ok_or(GameError::Internal(Cause::Impossible));
-    /// ```
-    ///
-    /// I truly expect this to never happen. #FamousLastWords
-    Impossible,
-}
-
-/// This is basically the "rules" enum. For each rule dictating allowed plays, there will be an entry here.
-#[derive(Debug)]
-pub enum Reason {
-    NotYourTurn,
-    CardNotInHand,
-    CantPlayDecreasingCardValue,
-    NeutralDrawPileEmpty,
-    CantRedrawCardJustPlayed,
-}
-
-/// User-facing message to educate the user how to play.
-impl Display for Reason {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        match self {
-            Reason::NotYourTurn => write!(f, "It is not your turn."),
-            Reason::CardNotInHand => write!(f, "The card is not in your hand."),
-            Reason::CantPlayDecreasingCardValue => write!(f, "For a specific color, you must play cards of the same or higher value."),
-            Reason::NeutralDrawPileEmpty => write!(f, "You can't draw from the neutral discard pile for that color because it is empty."),
-            Reason::CantRedrawCardJustPlayed => write!(f, "You are not allowed to redraw the same card you just discarded."),
-        }
-    }
-}
-
-impl Error for GameError {}
-
-impl Display for GameError {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
-        match self {
-            GameError::NotFound(entity) => f.write_str(&format!("{} not found!", entity)),
-            GameError::Internal(cause) => f.write_str(&format!("Unexpected error: {:?}", cause)),
-            GameError::GameAlreadyMatched => f.write_str("No room for u."),
-            GameError::InvalidPlay(reason) => f.write_str(&format!("You cannot make that play: {:?}", reason)),
-            GameError::BackendFault => f.write_str("Calling backend failed. CRAP."),
-            GameError::BackendTimeout => f.write_str("Timeout while calling backend."),
-            GameError::BackendUnknown => f.write_str("Unknown backend failure. Should probably handle this branch before it gets to this point."),
-        }
-    }
-}

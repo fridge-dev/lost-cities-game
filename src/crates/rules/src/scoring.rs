@@ -1,4 +1,4 @@
-use types::{CardValue, CardColor};
+use game_api::types::{CardValue, CardColor};
 use std::collections::HashMap;
 
 pub fn compute_score(plays: &HashMap<CardColor, Vec<CardValue>>) -> i32 {

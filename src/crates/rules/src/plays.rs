@@ -1,6 +1,6 @@
 /// "Plays" is a module for encapsulating all logic for determining what you are allowed to do in your turn.
 /// E.g. *playing* a card, drawing a card.
-use types::{Card, CardColor, CardValue, DecoratedCard};
+use game_api::types::{Card, CardColor, CardValue, DecoratedCard};
 use std::collections::HashMap;
 
 pub fn decorate_hand(hand: Vec<Card>, previous_plays: &HashMap<CardColor, Vec<CardValue>>) -> Vec<DecoratedCard> {

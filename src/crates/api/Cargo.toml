@@ -8,8 +8,8 @@ edition = "2018"
 # Local repo dependencies
 storage = { path = "../storage" } # Backend only
 rules = { path = "../rules" } # Backend only
-types = { path = "../types" }
-wire_types = { path = "../../crates/wire_types" } # Frontend only
+game-api = { path = "../game-api" }
+wire-api = { path = "../wire-api" }
 
 # External dependencies
 rand = "=0.7.3"

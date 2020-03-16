@@ -1,5 +1,5 @@
 /// For impls of the Display trait.
-use crate::{GameBoard, GameState, Card, CardColor, CardValue, DecoratedCard};
+use crate::types::{GameBoard, GameState, Card, CardColor, CardValue, DecoratedCard};
 use std::fmt::{Display, Formatter};
 use std::fmt;
 use std::collections::HashMap;
@@ -27,7 +27,7 @@ impl Display for GameState {
         let mut lines = Vec::new();
 
         lines.push("The board:");
-        let game_board_str = format!("{}", self.game_board);
+        let game_board_str = format!("{}", self.game_board());
         lines.push(&game_board_str);
 
         lines.push("");
@@ -35,13 +35,13 @@ impl Display for GameState {
         lines.push(HAND_BORDER);
         let mut hand_number_line = String::with_capacity(HAND_ROW_SIZE);
         let mut hand_color_line = String::with_capacity(HAND_ROW_SIZE);
-        for (i, decorated_card) in self.my_hand.iter().enumerate() {
+        for (i, decorated_card) in self.my_hand().iter().enumerate() {
             if i != 0 {
                 hand_number_line.push(' ');
                 hand_color_line.push(' ');
             }
-            hand_number_line.push_str(&format!("|{:^5}|", decorated_card.card.card_value.to_string_short()));
-            hand_color_line.push_str(&format!("|{:^5}|", decorated_card.card.card_color.to_string_short()));
+            hand_number_line.push_str(&format!("|{:^5}|", decorated_card.card().card_value().to_string_short()));
+            hand_color_line.push_str(&format!("|{:^5}|", decorated_card.card().card_color().to_string_short()));
         }
         lines.push(&hand_number_line);
         lines.push(&hand_color_line);
@@ -300,7 +300,7 @@ impl CardValue {
 mod tests {
     use super::*;
     use std::collections::HashMap;
-    use crate::{GameState, DecoratedCard, GameStatus};
+    use crate::app_layer::types::GameStatus;
 
     #[test]
     fn eyeball_stdout_test() {

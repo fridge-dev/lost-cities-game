@@ -1,12 +1,10 @@
 use tonic::{Request, Response, Status};
-use wire_types::proto_lost_cities::proto_lost_cities_server::{
-    ProtoLostCities
-};
-use wire_types::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply};
+use wire_api::proto_lost_cities::proto_lost_cities_server::ProtoLostCities;
+use wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply};
 use api::GameApi;
 use crate::type_converters::WireTypeConverter;
 use std::sync::{Mutex, PoisonError};
-use types::{GameError, Cause};
+use game_api::backend_errors::{BackendGameError, Cause};
 use tonic::codegen::Arc;
 
 /// Backend server is the entry point which will implement the gRPC server type.
@@ -24,10 +22,10 @@ impl LostCitiesBackendServer {
     }
 }
 
-fn convert_lock_error<T>(e: PoisonError<T>) -> GameError {
+fn convert_lock_error<T>(e: PoisonError<T>) -> BackendGameError {
     // I don't know how to recover from this. Recreate game handler?
     println!("ERROR: GameApi lock was poisoned. Here's the err: {}", e);
-    GameError::Internal(Cause::Internal("Failed to acquire GameApi lock"))
+    BackendGameError::Internal(Cause::Internal("Failed to acquire GameApi lock"))
 }
 
 #[tonic::async_trait]

@@ -1,7 +1,8 @@
-use types::{GameError, GameState, Play};
+use game_api::types::{GameState, Play};
 use crate::handler::StorageBackedGameApi;
 use std::sync::{Arc, Mutex};
 use crate::backend_client::BackendClient;
+use game_api::backend_errors::BackendGameError;
 
 mod backend_client;
 mod handler;
@@ -15,16 +16,16 @@ pub trait GameApi {
 
     /// Create a new game with only the host player present.
     /// Returns game_id used for all future queries
-    fn host_game(&mut self, p1_id: String) -> Result<String, GameError>;
+    fn host_game(&mut self, p1_id: String) -> Result<String, BackendGameError>;
 
     /// Player 2 joins the game.
-    fn join_game(&mut self, game_id: String, p2_id: String) -> Result<(), GameError>;
+    fn join_game(&mut self, game_id: String, p2_id: String) -> Result<(), BackendGameError>;
 
     /// Load the state of the game as observed by the requested player.
-    fn get_game_state(&self, game_id: String, player_id: String) -> Result<GameState, GameError>;
+    fn get_game_state(&self, game_id: String, player_id: String) -> Result<GameState, BackendGameError>;
 
     /// Make a turn. Should call get_game_state() after this. Maybe not needed? Idk yet.
-    fn play_card(&mut self, play: Play) -> Result<(), GameError>;
+    fn play_card(&mut self, play: Play) -> Result<(), BackendGameError>;
 }
 
 /// Does this mean every call from main to API will incur the cost of a v-lookup table query?

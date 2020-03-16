@@ -10,9 +10,9 @@ path = "src/main.rs"
 
 [dependencies]
 # Local repo dependencies
-wire_types = { path = "../../crates/wire_types" }
-api = { path = "../../crates/api" }
-types = { path = "../../crates/types" }
+api = { path = "../api" }
+game-api = { path = "../game-api" }
+wire-api = { path = "../wire-api" }
 
 # External dependencies
 tokio = { version = "0.2", features = ["full"] }

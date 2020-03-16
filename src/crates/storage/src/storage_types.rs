@@ -1,8 +1,9 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use core::fmt;
-use types::{Card, CardColor, CardValue}; // This is a broken layer of abstraction. But I'm sick of re-writing the same types for now. I'm trying to learn rust!
-use std::collections::HashMap;
+// This is a broken layer of abstraction. But I'm sick of re-writing the same types for now. I'm trying to learn rust!
+use game_api::types::{Card, CardColor, CardValue};
 
 const MISSING_P2_ID_MSG: &str = "Player 2 id is missing from metadata. If this happens, I was probably not as careful as I assumed and I should rename this method.";
 

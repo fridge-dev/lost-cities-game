@@ -1,8 +1,9 @@
 use std::error::Error;
-use types::{Play, Card, CardColor, CardTarget, DrawPile, GameState, GameError, GameStatus, GameResult};
+use game_api::types::{Play, Card, CardColor, CardTarget, DrawPile, GameState, GameStatus, GameResult};
 use api::GameApi;
 use client::cli;
 use client::state_machine::Alternator;
+use game_api::backend_errors::BackendGameError;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut game_api = api::new_frontend_game_api();
@@ -54,7 +55,7 @@ fn create_alternator<'a>(
     game_id: String,
     p1_id: &'a String,
     p2_id: &'a String
-) -> Result<Alternator<'a, String>, GameError> {
+) -> Result<Alternator<'a, String>, BackendGameError> {
     let mut player_turns = Alternator::new(p1_id, p2_id);
 
     // Tick player turn order forward if player 2 is supposed to start.
