@@ -10,10 +10,14 @@ path = "src/main.rs"
 
 [dependencies]
 # Local repo dependencies
-api = { path = "../api" }
+storage = { path = "../storage" } # Backend only
+rules = { path = "../rules" } # Backend only
 game-api = { path = "../game-api" }
 wire-api = { path = "../wire-api" }
 
 # External dependencies
+async-trait = "0.1.24"
+futures = "=0.3.4"
+rand = "=0.7.3"
 tokio = { version = "0.2", features = ["full"] }
 tonic = "0.1.1"

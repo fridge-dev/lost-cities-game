@@ -1,31 +1,34 @@
 use tonic::{Request, Response, Status};
 use wire_api::proto_lost_cities::proto_lost_cities_server::ProtoLostCities;
 use wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply};
-use api::GameApi;
+use game_api::api::GameApi2;
 use std::sync::{Mutex, PoisonError};
-use game_api::backend_errors::{BackendGameError, Cause};
 use tonic::codegen::Arc;
 use wire_api::type_converters;
+use futures::executor::block_on;
+use crate::backend;
+use crate::backend::backend_error::{BackendGameError2, Cause};
 
 /// Backend server is the entry point which will implement the gRPC server type.
 pub struct LostCitiesBackendServer {
-    // Mutex because I want a working, multi-tasked prototype for now.
+    // Mutex needed for interior mutability because I want a working, multi-tasked prototype for now.
+    // The multi-task impl runs on a single, blocking thread, so yeah, it's not great.
     // I'll change the GameApi to be backed by a mpsc task model with oneshot callbacks.
-    game_api: Arc<Mutex<dyn GameApi + Send>>,
+    game_api: Arc<Mutex<dyn GameApi2<BackendGameError2> + Send>>,
 }
 
 impl LostCitiesBackendServer {
     pub fn new() -> Self {
         LostCitiesBackendServer {
-            game_api: api::new_backend_game_api()
+            game_api: backend::channels::new_backend_game_api()
         }
     }
 }
 
-fn convert_lock_error<T>(e: PoisonError<T>) -> BackendGameError {
+fn convert_lock_error<T>(e: PoisonError<T>) -> BackendGameError2 {
     // I don't know how to recover from this. Recreate game handler?
     println!("ERROR: GameApi lock was poisoned. Here's the err: {}", e);
-    BackendGameError::Internal(Cause::Internal("Failed to acquire GameApi lock"))
+    BackendGameError2::Internal(Cause::Internal("Failed to acquire GameApi lock"))
 }
 
 #[tonic::async_trait]
@@ -37,13 +40,13 @@ impl ProtoLostCities for LostCitiesBackendServer {
 
         let player_id = type_converters::try_from_proto_host_game_req(inner)?;
 
-        let result = {
+        let game_id = {
             match self.game_api.lock() {
-                Ok(mut api) => api.host_game(player_id),
+                // TODO change `block_on` to use `.await` with channels
+                Ok(mut api) => block_on(api.host_game(player_id)),
                 Err(e) => Err(convert_lock_error(e)),
             }
-        };
-        let game_id = result.map_err(|e| type_converters::into_proto_status(e))?;
+        }?;
 
         Ok(Response::new(ProtoHostGameReply {
             game_id
@@ -56,13 +59,13 @@ impl ProtoLostCities for LostCitiesBackendServer {
 
         let (game_id, player_id) = type_converters::try_from_proto_join_game_req(inner)?;
 
-        let result = {
+        let _ = {
             match self.game_api.lock() {
-                Ok(mut api) => api.join_game(game_id, player_id),
+                // TODO change `block_on` to use `.await` with channels
+                Ok(mut api) => block_on(api.join_game(game_id, player_id)),
                 Err(e) => Err(convert_lock_error(e)),
             }
-        };
-        result.map_err(|e| type_converters::into_proto_status(e))?;
+        }?;
 
         Ok(Response::new(ProtoJoinGameReply {}))
     }
@@ -73,13 +76,13 @@ impl ProtoLostCities for LostCitiesBackendServer {
 
         let (game_id, player_id) = type_converters::try_from_proto_get_game_state_req(inner)?;
 
-        let result = {
+        let game_state = {
             match self.game_api.lock() {
-                Ok(api) => api.get_game_state(game_id, player_id),
+                // TODO change `block_on` to use `.await` with channels
+                Ok(mut api) => block_on(api.get_game_state(game_id, player_id)),
                 Err(e) => Err(convert_lock_error(e)),
             }
-        };
-        let game_state = result.map_err(|e| type_converters::into_proto_status(e))?;
+        }?;
 
         Ok(Response::new(game_state.into()))
     }
@@ -90,13 +93,13 @@ impl ProtoLostCities for LostCitiesBackendServer {
 
         let play = type_converters::try_from_proto_play_card_req(inner)?;
 
-        let result = {
+        let _ = {
             match self.game_api.lock() {
-                Ok(mut api) => api.play_card(play),
+                // TODO change `block_on` to use `.await` with channels
+                Ok(mut api) => block_on(api.play_card(play)),
                 Err(e) => Err(convert_lock_error(e)),
             }
-        };
-        result.map_err(|e| type_converters::into_proto_status(e))?;
+        }?;
 
         Ok(Response::new(ProtoPlayCardReply {}))
     }

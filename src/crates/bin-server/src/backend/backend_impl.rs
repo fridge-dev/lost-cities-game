@@ -1,12 +1,13 @@
-use crate::GameApi;
+use game_api::api::GameApi2;
 use game_api::types::{GameState, Play, Card, GameBoard, CardTarget, CardColor, CardValue, DrawPile};
-use storage::storage_types::{StorageGameMetadata, GameStatus, StorageError, StorageGameState};
-use storage::storage_api::GameStore;
-use storage::local_storage::LocalStore;
 use rules::deck::DeckFactory;
-use std::collections::HashMap;
 use rules::{plays, scoring, endgame};
-use game_api::backend_errors::{BackendGameError, Reason, Cause};
+use std::collections::HashMap;
+use storage::local_storage::LocalStore;
+use storage::storage_api::GameStore;
+use storage::storage_types::{StorageGameMetadata, GameStatus, StorageError, StorageGameState};
+use crate::backend::backend_error::{BackendGameError2, Cause, Reason};
+use std::sync::Arc;
 
 pub struct StorageBackedGameApi {
     storage: Box<dyn GameStore + Send>,
@@ -21,32 +22,32 @@ impl StorageBackedGameApi {
         }
     }
 
-    fn update_game_metadata(&mut self, game_id: &str, p2_id: String) -> Result<(), BackendGameError> {
+    fn update_game_metadata(&mut self, game_id: &str, p2_id: String) -> Result<(), BackendGameError2> {
         let mut metadata = self.storage.load_game_metadata(game_id)
             .map_err(|e| match e {
-                StorageError::NotFound => BackendGameError::NotFound("Game metadata"),
-                _ => BackendGameError::Internal(Cause::Storage("Failed to load game metadata", Box::new(e)))
+                StorageError::NotFound => BackendGameError2::NotFound("Game metadata"),
+                _ => BackendGameError2::Internal(Cause::Storage("Failed to load game metadata", Arc::new(e)))
             })?;
         metadata.set_p2_id(p2_id)
             .map_err(|e| match e {
-                StorageError::IllegalModification => BackendGameError::GameAlreadyMatched,
-                _ => BackendGameError::Internal(Cause::Storage("Failed to mutate game metadata", Box::new(e))),
+                StorageError::IllegalModification => BackendGameError2::GameAlreadyMatched,
+                _ => BackendGameError2::Internal(Cause::Storage("Failed to mutate game metadata", Arc::new(e))),
             })?;
         self.storage.update_game_metadata(metadata)
             .map_err(|e| match e {
-                StorageError::NotFound => BackendGameError::NotFound("Game metadata"),
-                _ => BackendGameError::Internal(Cause::Storage("Failed to save game metadata", Box::new(e)))
+                StorageError::NotFound => BackendGameError2::NotFound("Game metadata"),
+                _ => BackendGameError2::Internal(Cause::Storage("Failed to save game metadata", Arc::new(e)))
             })
     }
 
-    fn create_initial_game_state(&mut self, game_id: String) -> Result<(), BackendGameError> {
+    fn create_initial_game_state(&mut self, game_id: String) -> Result<(), BackendGameError2> {
         let mut deck = self.deck_factory.new_shuffled_deck();
 
         let mut p1_hand: Vec<Card> = Vec::with_capacity(8);
         let mut p2_hand: Vec<Card> = Vec::with_capacity(8);
         for _ in 0..8 {
-            p1_hand.push(deck.pop().ok_or_else(|| BackendGameError::Internal(Cause::Impossible))?);
-            p2_hand.push(deck.pop().ok_or_else(|| BackendGameError::Internal(Cause::Impossible))?);
+            p1_hand.push(deck.pop().ok_or_else(|| BackendGameError2::Internal(Cause::Impossible))?);
+            p2_hand.push(deck.pop().ok_or_else(|| BackendGameError2::Internal(Cause::Impossible))?);
         }
 
         let game_state = StorageGameState::new(
@@ -61,14 +62,14 @@ impl StorageBackedGameApi {
         );
 
         self.storage.create_game_state(game_state)
-            .map_err(|e| BackendGameError::Internal(Cause::Storage("Failed to save initial game state", Box::new(e))))
+            .map_err(|e| BackendGameError2::Internal(Cause::Storage("Failed to save initial game state", Arc::new(e))))
     }
 
-    fn load_game(&self, game_id: &str, player_id: &str) -> Result<(StorageGameState, bool), BackendGameError> {
+    fn load_game(&self, game_id: &str, player_id: &str) -> Result<(StorageGameState, bool), BackendGameError2> {
         let metadata = self.storage.load_game_metadata(game_id)
             .map_err(|e| match e {
-                StorageError::NotFound => BackendGameError::NotFound("Game metadata"),
-                _ => BackendGameError::Internal(Cause::Storage("Failed to load game", Box::new(e)))
+                StorageError::NotFound => BackendGameError2::NotFound("Game metadata"),
+                _ => BackendGameError2::Internal(Cause::Storage("Failed to load game", Arc::new(e)))
             })?;
 
         let is_player_1 = if player_id == metadata.p1_id() {
@@ -76,13 +77,13 @@ impl StorageBackedGameApi {
         } else if player_id == metadata.p2_id() {
             false
         } else {
-            return Err(BackendGameError::NotFound("Player in game"));
+            return Err(BackendGameError2::NotFound("Player in game"));
         };
 
         let storage_game_state = self.storage.load_game_state(game_id)
             .map_err(|e| match e {
-                StorageError::NotFound => BackendGameError::NotFound("Game state"),
-                _ => BackendGameError::Internal(Cause::Storage("Failed to load game state.", Box::new(e))),
+                StorageError::NotFound => BackendGameError2::NotFound("Game state"),
+                _ => BackendGameError2::Internal(Cause::Storage("Failed to load game state.", Arc::new(e))),
             })?;
 
         println!("DEBUG: Loaded game state: {:?}", storage_game_state);
@@ -91,9 +92,9 @@ impl StorageBackedGameApi {
     }
 }
 
-impl GameApi for StorageBackedGameApi {
-
-    fn host_game(&mut self, p1_id: String) -> Result<String, BackendGameError> {
+#[async_trait::async_trait]
+impl GameApi2<BackendGameError2> for StorageBackedGameApi {
+    async fn host_game(&mut self, p1_id: String) -> Result<String, BackendGameError2> {
         let game_id = create_game_id();
         let storage_result = self.storage.create_game_metadata(StorageGameMetadata::new(
             game_id.clone(),
@@ -105,16 +106,16 @@ impl GameApi for StorageBackedGameApi {
         match storage_result {
             Ok(_) => Ok(game_id),
             // This should never fail.
-            Err(e) => Err(BackendGameError::Internal(Cause::Storage("Failed to list game as hosted.", Box::new(e))))
+            Err(e) => Err(BackendGameError2::Internal(Cause::Storage("Failed to list game as hosted.", Arc::new(e))))
         }
     }
 
-    fn join_game(&mut self, game_id: String, p2_id: String) -> Result<(), BackendGameError> {
+    async fn join_game(&mut self, game_id: String, p2_id: String) -> Result<(), BackendGameError2> {
         self.update_game_metadata(&game_id, p2_id)?;
         self.create_initial_game_state(game_id)
     }
 
-    fn get_game_state(&self, game_id: String, player_id: String) -> Result<GameState, BackendGameError> {
+    async fn get_game_state(&mut self, game_id: String, player_id: String) -> Result<GameState, BackendGameError2> {
         let (storage_game_state, is_player_1) = self.load_game(&game_id, &player_id)?;
 
         let game_state = convert_game_state(storage_game_state, is_player_1);
@@ -122,17 +123,17 @@ impl GameApi for StorageBackedGameApi {
         return Ok(game_state);
     }
 
-    fn play_card(&mut self, play: Play) -> Result<(), BackendGameError> {
+    async fn play_card(&mut self, play: Play) -> Result<(), BackendGameError2> {
         let (storage_game_state, is_player_1) = self.load_game(play.game_id(), play.player_id())?;
 
         let updated_game_state = apply_play_to_game_state(play, storage_game_state, is_player_1)?;
 
         self.storage.update_game_state(updated_game_state)
-            .map_err(|e| BackendGameError::Internal(Cause::Storage("Failed to save the updated game state", Box::new(e))))
+            .map_err(|e| BackendGameError2::Internal(Cause::Storage("Failed to save the updated game state", Arc::new(e))))
     }
 }
 
-// ================ private, static (stateless) methods related to GameHandlerImpl =================
+// ================ private, static (stateless) methods related to StorageBackedGameApi =================
 
 fn create_game_id() -> String {
     // random hex string
@@ -207,7 +208,7 @@ fn apply_play_to_game_state(
     play: Play,
     storage_game_state: StorageGameState,
     is_player_1: bool
-) -> Result<StorageGameState, BackendGameError> {
+) -> Result<StorageGameState, BackendGameError2> {
 
     let pa_sgs = storage_game_state.convert_to_player_aware(is_player_1);
 
@@ -217,7 +218,7 @@ fn apply_play_to_game_state(
         pa_sgs.my_plays(),
         pa_sgs.inner().neutral_draw_pile(),
         pa_sgs.is_my_turn()
-    ).map_err(|e| BackendGameError::InvalidPlay(e))?;
+    ).map_err(|e| BackendGameError2::InvalidPlay(e))?;
 
     let mut pa_sgs = pa_sgs;
     // Model a turn like in real life:
@@ -245,7 +246,7 @@ fn apply_play_to_game_state(
                 .map(|drawn_value| Card::new(*color, drawn_value))
         }
     };
-    let new_card = new_card_opt.ok_or_else(|| BackendGameError::Internal(Cause::Impossible))?;
+    let new_card = new_card_opt.ok_or_else(|| BackendGameError2::Internal(Cause::Impossible))?;
     pa_sgs.my_hand_mut().push(new_card);
 
     // 4. Flip the turn marker

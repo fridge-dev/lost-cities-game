@@ -1,11 +1,9 @@
+#![allow(dead_code)]
 use game_api::types::{GameState, Play};
-use crate::handler::StorageBackedGameApi;
-use std::sync::{Arc, Mutex};
 use crate::backend_client::BackendClient;
 use game_api::backend_errors::BackendGameError;
 
 mod backend_client;
-mod handler;
 
 /// Maybe having this as a trait is a little too OOP? this is a learning experiment.
 ///
@@ -39,8 +37,4 @@ pub fn new_frontend_game_api() -> Box<dyn GameApi> {
         Ok(client) => Box::new(client),
         Err(e) => panic!(format!("Failed to connect to backend. AAAAAA! {:?}", e)),
     }
-}
-
-pub fn new_backend_game_api() -> Arc<Mutex<dyn GameApi + Send>> {
-    Arc::new(Mutex::new(StorageBackedGameApi::new()))
 }
