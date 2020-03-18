@@ -14,7 +14,7 @@ pub struct GameClient {
 
 impl GameClient {
     pub async fn new_async() -> Result<Self, Error> {
-        let endpoint = Endpoint::new("localhost:50051")?;
+        let endpoint = Endpoint::new("http://localhost:50051")?;
 
         let connection = endpoint.connect().await?;
 
