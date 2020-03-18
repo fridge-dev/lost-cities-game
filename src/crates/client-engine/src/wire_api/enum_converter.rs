@@ -3,41 +3,43 @@
 /// this. So I will create explicit methods and contain the "dark magic" within these small methods.
 ///
 /// See https://github.com/danburkert/prost/issues/69
-use crate::proto_lost_cities::{ProtoColor, ProtoDrawPile, ProtoGameStatus, ProtoPlayTarget};
+use std::borrow::Cow;
 use std::convert::TryFrom;
+use crate::wire_api::proto_lost_cities::{ProtoColor, ProtoPlayTarget, ProtoDrawPile, ProtoGameStatus};
+use crate::client_game_api::error::ClientGameError;
 
 impl TryFrom<i32> for ProtoColor {
-    type Error = String;
+    type Error = ClientGameError;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         ProtoColor::from_i32(value)
-            .ok_or(format!("Illegal Color i32 value '{}'", value))
+            .ok_or(ClientGameError::MalformedResponse(Cow::from(format!("Illegal Color i32 value '{}'", value))))
     }
 }
 
 impl TryFrom<i32> for ProtoPlayTarget {
-    type Error = String;
+    type Error = ClientGameError;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         ProtoPlayTarget::from_i32(value)
-            .ok_or(format!("Illegal Color i32 value '{}'", value))
+            .ok_or(ClientGameError::MalformedResponse(Cow::from(format!("Illegal Color i32 value '{}'", value))))
     }
 }
 
 impl TryFrom<i32> for ProtoDrawPile {
-    type Error = String;
+    type Error = ClientGameError;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         ProtoDrawPile::from_i32(value)
-            .ok_or(format!("Illegal Color i32 value '{}'", value))
+            .ok_or(ClientGameError::MalformedResponse(Cow::from(format!("Illegal Color i32 value '{}'", value))))
     }
 }
 
 impl TryFrom<i32> for ProtoGameStatus {
-    type Error = String;
+    type Error = ClientGameError;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         ProtoGameStatus::from_i32(value)
-            .ok_or(format!("Illegal Color i32 value '{}'", value))
+            .ok_or(ClientGameError::MalformedResponse(Cow::from(format!("Illegal Color i32 value '{}'", value))))
     }
 }

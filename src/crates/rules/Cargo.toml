@@ -5,9 +5,9 @@ authors = ["Alec Von Arx <al.vonarx@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-# Local repo dependencies
+# 1p
 game-api = { path = "../game-api" }
 
-# External dependencies
+# 3p
 rand = "=0.7.3"
 rand_core = "=0.5.1"

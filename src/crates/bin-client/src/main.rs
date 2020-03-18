@@ -1,13 +1,14 @@
 use std::error::Error;
 use game_api::types::{Play, Card, CardColor, CardTarget, DrawPile, GameState, GameStatus, GameResult};
-use client::{cli, frontend};
-use client::state_machine::Alternator;
-use client::frontend::frontend_error::ClientGameError;
 use game_api::api::GameApi2;
+use client_engine::client_game_api::provider;
+use client_engine::client_game_api::error::ClientGameError;
+use bin_client::cli;
+use bin_client::state_machine::Alternator;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let mut game_api = frontend::new_frontend_game_api();
+    let mut game_api = provider::new_frontend_game_api();
 
     // Game setup
     let p1_id = cli::prompt_for_input("Please enter Player 1's name: ");

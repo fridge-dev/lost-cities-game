@@ -1,13 +1,13 @@
 use tonic::{Request, Response, Status};
-use wire_api::proto_lost_cities::proto_lost_cities_server::ProtoLostCities;
-use wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply};
+use crate::wire_api::proto_lost_cities::proto_lost_cities_server::ProtoLostCities;
+use crate::wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply};
 use game_api::api::GameApi2;
 use std::sync::{Mutex, PoisonError};
 use tonic::codegen::Arc;
-use wire_api::type_converters;
 use futures::executor::block_on;
 use crate::backend;
 use crate::backend::backend_error::{BackendGameError2, Cause};
+use std::convert::TryInto;
 
 /// Backend server is the entry point which will implement the gRPC server type.
 pub struct LostCitiesBackendServer {
@@ -38,7 +38,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let inner = request.into_inner();
         println!("Rcv: {:?}", inner);
 
-        let player_id = type_converters::try_from_proto_host_game_req(inner)?;
+        let player_id = inner.try_into()?;
 
         let game_id = {
             match self.game_api.lock() {
@@ -57,7 +57,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let inner = request.into_inner();
         println!("Rcv: {:?}", inner);
 
-        let (game_id, player_id) = type_converters::try_from_proto_join_game_req(inner)?;
+        let (game_id, player_id) = inner.try_into()?;
 
         let _ = {
             match self.game_api.lock() {
@@ -74,7 +74,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let inner = request.into_inner();
         println!("Rcv: {:?}", inner);
 
-        let (game_id, player_id) = type_converters::try_from_proto_get_game_state_req(inner)?;
+        let (game_id, player_id) = inner.try_into()?;
 
         let game_state = {
             match self.game_api.lock() {
@@ -91,7 +91,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let inner = request.into_inner();
         println!("Rcv: {:?}", inner);
 
-        let play = type_converters::try_from_proto_play_card_req(inner)?;
+        let play = inner.try_into()?;
 
         let _ = {
             match self.game_api.lock() {

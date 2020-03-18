@@ -1,5 +1,5 @@
 [package]
-name = "server"
+name = "bin-server"
 version = "0.1.0"
 authors = ["Alec Von Arx <al.vonarx@gmail.com>"]
 edition = "2018"
@@ -9,15 +9,18 @@ name = "lost-cities-game-server"
 path = "src/main.rs"
 
 [dependencies]
-# Local repo dependencies
-storage = { path = "../storage" } # Backend only
-rules = { path = "../rules" } # Backend only
+# 1p
+storage = { path = "../storage" }
+rules = { path = "../rules" }
 game-api = { path = "../game-api" }
-wire-api = { path = "../wire-api" }
 
-# External dependencies
+# 3p
 async-trait = "0.1.24"
 futures = "=0.3.4"
 rand = "=0.7.3"
 tokio = { version = "0.2", features = ["full"] }
 tonic = "0.1.1"
+prost = "0.6.1"
+
+[build-dependencies]
+tonic-build = "0.1.1"

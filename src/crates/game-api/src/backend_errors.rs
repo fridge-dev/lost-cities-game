@@ -5,22 +5,22 @@ use std::fmt;
 /// THis is the legacy GameError.
 /// TODO delete this once unused
 #[derive(Debug)]
-pub enum BackendGameError {
+pub enum LegacyGameError {
     Internal(Cause),
     NotFound(&'static str),
     GameAlreadyMatched,
     InvalidPlay(Reason),
 }
 
-impl Error for BackendGameError {}
+impl Error for LegacyGameError {}
 
-impl Display for BackendGameError {
+impl Display for LegacyGameError {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            BackendGameError::NotFound(entity) => f.write_str(&format!("{} not found!", entity)),
-            BackendGameError::Internal(cause) => f.write_str(&format!("Unexpected error: {:?}", cause)),
-            BackendGameError::GameAlreadyMatched => f.write_str("No room for u."),
-            BackendGameError::InvalidPlay(reason) => f.write_str(&format!("You cannot make that play: {:?}", reason)),
+            LegacyGameError::NotFound(entity) => f.write_str(&format!("{} not found!", entity)),
+            LegacyGameError::Internal(cause) => f.write_str(&format!("Unexpected error: {:?}", cause)),
+            LegacyGameError::GameAlreadyMatched => f.write_str("No room for u."),
+            LegacyGameError::InvalidPlay(reason) => f.write_str(&format!("You cannot make that play: {:?}", reason)),
         }
     }
 }

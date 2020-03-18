@@ -10,16 +10,18 @@ use std::io;
 /// This isn't a necessarily happy end state, but I want to move on to solving other problems
 /// for now.
 fn main() -> io::Result<()> {
-    //build_proto()?;
+    build_proto()?;
     Ok(())
 }
 
 #[allow(dead_code)]
 fn build_proto() -> io::Result<()> {
-        tonic_build::configure()
-        .out_dir("./src/")
+    tonic_build::configure()
+        .out_dir("./src/wire_api/")
+        .build_client(false)
+        .build_server(true)
         .compile(
-            &["./lost_cities_wire.proto"],
-            &["./"],
+            &["./../../protobuf/lost_cities_wire.proto"],
+            &["./../../protobuf/"],
         )
 }

@@ -1,5 +1,5 @@
 [package]
-name = "client"
+name = "bin-client"
 version = "0.1.0"
 authors = ["Alec Von Arx <al.vonarx@gmail.com>"]
 edition = "2018"
@@ -9,15 +9,9 @@ name = "lost-cities-game-client"
 path = "src/main.rs"
 
 [dependencies]
-# Local repo dependencies
+# 1p
+client-engine = { path = "../client-engine" }
 game-api = { path = "../game-api" }
-# Client has access to tonic server, which is weird. Figure out how to export cargo "features"
-wire-api = { path = "../wire-api" }
 
-# External dependencies
-futures = "=0.3.4"
+# 3p
 tokio = { version = "0.2", features = ["full"] }
-
-# frontend mod only
-async-trait = "0.1.24"
-tonic = "0.1.1"

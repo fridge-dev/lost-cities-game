@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 use tonic::transport::Server;
-use wire_api::proto_lost_cities::proto_lost_cities_server::ProtoLostCitiesServer;
-use server::server_impl::LostCitiesBackendServer;
+use bin_server::server_impl::LostCitiesBackendServer;
+use bin_server::wire_api::proto_lost_cities::proto_lost_cities_server::ProtoLostCitiesServer;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
