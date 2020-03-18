@@ -311,14 +311,14 @@ impl Play {
 }
 
 /// Where to *play* a card.
-#[derive(PartialEq, Eq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum CardTarget {
     Player,
     Neutral,
 }
 
 /// Where to draw the new card from.
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum DrawPile {
     Main,
     Neutral(CardColor),

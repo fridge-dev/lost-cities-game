@@ -1,28 +1,28 @@
 use std::error::Error;
-use game_api::types::{Play, Card, CardColor, CardTarget, DrawPile, GameState, GameStatus, GameResult};
+use game_api::types::{Play, Card, CardTarget, DrawPile, GameState, GameStatus, GameResult};
 use game_api::api::GameApi2;
 use client_engine::client_game_api::provider;
 use client_engine::client_game_api::error::ClientGameError;
-use bin_client::cli;
+use bin_client::cli::smart_cli;
 use bin_client::state_machine::Alternator;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let mut game_api = provider::new_frontend_game_api();
 
-    // Game setup
-    let p1_id = cli::prompt_for_input("Please enter Player 1's name: ");
-    let game_id = game_api.host_game(p1_id.clone()).await?;
+    let player_id = smart_cli::prompt_for_player_id().expect("This should never fail.");
+
+    let game_id = game_api.host_game(player_id.clone()).await?;
     println!("Created Game ID = {}", game_id);
 
-    let p2_id = cli::prompt_for_input("Please enter Player 2's name: ");
+    let p2_id = smart_cli::prompt_for_player_id()?;
     game_api.join_game(game_id.clone(), p2_id.clone()).await?;
 
     println!();
-    println!("Welcome. This game will feature '{}' vs '{}'.", p1_id, p2_id);
+    println!("Welcome. This game will feature '{}' vs '{}'.", player_id, p2_id);
     println!();
 
-    let mut player_turns = create_alternator(&mut game_api, game_id.clone(), &p1_id, &p2_id).await?;
+    let mut player_turns = create_alternator(&mut game_api, game_id.clone(), &player_id, &p2_id).await?;
 
     // Game loop
     loop {
@@ -90,32 +90,20 @@ fn get_next_play_from_cli(game_state: &GameState) -> (&Card, CardTarget, DrawPil
         println!();
 
         // Card
-        let cli_hand_index = cli::prompt_for_input(&format!("[1/3] Which card would you like to play? (press 0-7 to select card)"));
-
-        let hand_index: usize = cli_hand_index.parse().unwrap_or(100);
-        if hand_index > 7 {
-            println!("Please enter a number between 0 and 7.");
-            continue;
-        }
-
-        let card_opt = game_state.my_hand().get(hand_index);
-        if card_opt.is_none() {
-            println!("Couldn't find card number '{:?}' in your hand. This is likely a bug.", hand_index);
-            continue;
-        }
-        let decorated_card = card_opt.unwrap();
-        let card = decorated_card.card();
+        let decorated_card = match smart_cli::prompt_for_card(game_state.my_hand()) {
+            Ok(v) => v,
+            Err(msg) => {
+                println!("{}", msg);
+                continue;
+            }
+        };
+        let card_to_play = decorated_card.card();
 
         // CardTarget
-        let cli_card_target = cli::prompt_for_input(&format!("[2/3] Where would you like to play '{}'? (press b=board, n=neutral)", card));
-        let card_target = match cli_card_target.as_str() {
-            "b" => CardTarget::Player,
-            "n" => CardTarget::Neutral,
-            _ => {
-                // Note:
-                // Ideally, each step of input should be repeated independently, allowing for a 'r' to reset.
-                // But I'm not focusing on frontend beautification right now. :D
-                println!("Please press either 'b' for your board or 'n' for neutral board.");
+        let card_target = match smart_cli::prompt_for_card_target(card_to_play) {
+            Ok(v) => v,
+            Err(msg) => {
+                println!("{}", msg);
                 continue;
             }
         };
@@ -127,26 +115,10 @@ fn get_next_play_from_cli(game_state: &GameState) -> (&Card, CardTarget, DrawPil
         }
 
         // DrawPile
-        let cli_draw_pile = cli::prompt_for_input(&format!("[3/3] Where would you like to draw your new card from? (press m=main, n=neutral)"));
-        let draw_pile = match cli_draw_pile.as_str() {
-            "m" => DrawPile::Main,
-            "n" => {
-                let cli_neutral_draw_color = cli::prompt_for_input(&format!("...And which color would you like to draw from? (enter the first letter of the color)"));
-                let draw_color = match cli_neutral_draw_color.as_str() {
-                    "b" => CardColor::Blue,
-                    "g" => CardColor::Green,
-                    "r" => CardColor::Red,
-                    "w" => CardColor::White,
-                    "y" => CardColor::Yellow,
-                    _ => {
-                        println!("Please select draw color by entering one of the following starting letters: (b)lue, (g)reen, (r)ed, (w)hite, (y)ellow");
-                        continue;
-                    }
-                };
-                DrawPile::Neutral(draw_color)
-            },
-            _ => {
-                println!("Please press either 'm' for main draw pile or 'n' for neutral draw pile.");
+        let draw_pile = match smart_cli::prompt_draw_pile() {
+            Ok(v) => v,
+            Err(msg) => {
+                println!("{}", msg);
                 continue;
             }
         };
