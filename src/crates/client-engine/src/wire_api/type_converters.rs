@@ -1,7 +1,4 @@
-use std::borrow::Cow;
-use std::collections::HashMap;
-use std::convert::{TryFrom, TryInto};
-use game_api::types::{Play, Card, CardColor, CardValue, CardTarget, DrawPile, GameState, GameStatus, GameResult, DecoratedCard, GameBoard};
+use crate::client_game_api::error::ClientGameError;
 use crate::wire_api::proto_lost_cities::{
     ProtoPlayCardReq,
     ProtoPlayTarget,
@@ -11,7 +8,22 @@ use crate::wire_api::proto_lost_cities::{
     ProtoGame,
     ProtoGameStatus
 };
-use crate::client_game_api::error::ClientGameError;
+use game_api::types::{
+    Play,
+    Card,
+    CardColor,
+    CardValue,
+    CardTarget,
+    DrawPile,
+    GameState,
+    GameStatus,
+    GameResult,
+    DecoratedCard,
+    GameBoard,
+};
+use std::borrow::Cow;
+use std::collections::HashMap;
+use std::convert::{TryFrom, TryInto};
 
 // ============================= Reply converters =====================================
 // ============================= Proto -> App =========================================
@@ -152,4 +164,3 @@ impl From<CardTarget> for ProtoPlayTarget {
         }
     }
 }
-

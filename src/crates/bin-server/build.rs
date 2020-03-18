@@ -10,7 +10,7 @@ use std::io;
 /// This isn't a necessarily happy end state, but I want to move on to solving other problems
 /// for now.
 fn main() -> io::Result<()> {
-    build_proto()?;
+    //build_proto()?;
     Ok(())
 }
 

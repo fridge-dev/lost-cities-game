@@ -3,10 +3,10 @@
 /// this. So I will create explicit methods and contain the "dark magic" within these small methods.
 ///
 /// See https://github.com/danburkert/prost/issues/69
+use crate::client_game_api::error::ClientGameError;
+use crate::wire_api::proto_lost_cities::{ProtoColor, ProtoPlayTarget, ProtoDrawPile, ProtoGameStatus};
 use std::borrow::Cow;
 use std::convert::TryFrom;
-use crate::wire_api::proto_lost_cities::{ProtoColor, ProtoPlayTarget, ProtoDrawPile, ProtoGameStatus};
-use crate::client_game_api::error::ClientGameError;
 
 impl TryFrom<i32> for ProtoColor {
     type Error = ClientGameError;

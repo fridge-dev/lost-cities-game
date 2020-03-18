@@ -1,11 +1,30 @@
 use crate::wire_api::proto_lost_cities::{
-    ProtoCard, ProtoColor, ProtoDiscardPile, ProtoDiscardPileSurface, ProtoDrawPile, ProtoGame,
-    ProtoGameStatus, ProtoGetGameStateReply, ProtoGetGameStateReq, ProtoHostGameReq,
-    ProtoJoinGameReq, ProtoPlayCardReq, ProtoPlayHistory, ProtoPlayTarget,
+    ProtoCard,
+    ProtoColor,
+    ProtoDiscardPile,
+    ProtoDiscardPileSurface,
+    ProtoDrawPile,
+    ProtoGame,
+    ProtoGameStatus,
+    ProtoGetGameStateReply,
+    ProtoGetGameStateReq,
+    ProtoHostGameReq,
+    ProtoJoinGameReq,
+    ProtoPlayCardReq,
+    ProtoPlayHistory,
+    ProtoPlayTarget,
 };
 use game_api::types::{
-    Card, CardColor, CardTarget, CardValue, DecoratedCard, DrawPile, GameResult, GameState,
-    GameStatus, Play,
+    Card,
+    CardColor,
+    CardTarget,
+    CardValue,
+    DecoratedCard,
+    DrawPile,
+    GameResult,
+    GameState,
+    GameStatus,
+    Play,
 };
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -71,16 +90,12 @@ impl TryFrom<ProtoPlayCardReq> for Play {
             Some(proto_card) => Card::try_from(proto_card)?,
         };
         let card_target: CardTarget = match ProtoPlayTarget::try_from(req.target)? {
-            ProtoPlayTarget::NoPlayTarget => {
-                return Err(Status::new(Code::InvalidArgument, "Unspecified PlayTarget"))
-            }
+            ProtoPlayTarget::NoPlayTarget => return Err(Status::new(Code::InvalidArgument, "Unspecified PlayTarget")),
             ProtoPlayTarget::PlayerBoard => CardTarget::Player,
             ProtoPlayTarget::Discard => CardTarget::Neutral,
         };
         let draw_pile: DrawPile = match ProtoDrawPile::try_from(req.draw_pile)? {
-            ProtoDrawPile::NoDrawPile => {
-                return Err(Status::new(Code::InvalidArgument, "Unspecified DrawPile"))
-            }
+            ProtoDrawPile::NoDrawPile => return Err(Status::new(Code::InvalidArgument, "Unspecified DrawPile")),
             ProtoDrawPile::MainDraw => DrawPile::Main,
             ProtoDrawPile::DiscardDraw => DrawPile::Neutral(CardColor::try_from(
                 ProtoColor::try_from(req.discard_draw_color)?,
@@ -116,10 +131,7 @@ impl TryFrom<ProtoColor> for CardColor {
 
     fn try_from(proto_color: ProtoColor) -> Result<Self, Self::Error> {
         match proto_color {
-            ProtoColor::NoColor => Err(Status::new(
-                Code::InvalidArgument,
-                "Unspecified proto color",
-            )),
+            ProtoColor::NoColor => Err(Status::new(Code::InvalidArgument, "Unspecified proto color")),
             ProtoColor::Red => Ok(CardColor::Red),
             ProtoColor::Green => Ok(CardColor::Green),
             ProtoColor::White => Ok(CardColor::White),
@@ -138,9 +150,7 @@ impl From<GameState> for ProtoGetGameStateReply {
             my_hand: into_proto_card_vec(game_state.my_hand()),
             my_plays: Some(into_proto_play_history(game_state.game_board().my_plays())),
             opponent_plays: Some(into_proto_play_history(game_state.game_board().op_plays())),
-            discard_pile: Some(into_proto_discard_pile(
-                game_state.game_board().neutral_draw_pile(),
-            )),
+            discard_pile: Some(into_proto_discard_pile(game_state.game_board().neutral_draw_pile())),
             draw_pile_cards_remaining: *game_state.game_board().draw_pile_cards_remaining() as u32,
             status: into_proto_game_status(&game_state) as i32,
             my_score: *game_state.game_board().my_score(),
