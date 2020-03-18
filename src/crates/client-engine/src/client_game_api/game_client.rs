@@ -1,4 +1,3 @@
-use futures::executor::block_on;
 use game_api::api::GameApi2;
 use game_api::types::{GameState, Play};
 use std::borrow::Cow;
@@ -13,7 +12,7 @@ pub struct GameClient {
 }
 
 impl GameClient {
-    pub async fn new_async() -> Result<Self, Error> {
+    pub async fn new() -> Result<Self, Error> {
         let endpoint = Endpoint::new("http://localhost:50051")?;
 
         let connection = endpoint.connect().await?;
@@ -21,10 +20,6 @@ impl GameClient {
         Ok(GameClient {
             inner_client: ProtoLostCitiesClient::new(connection)
         })
-    }
-
-    pub fn new_sync() -> Result<Self, Error> {
-        block_on(GameClient::new_async())
     }
 }
 

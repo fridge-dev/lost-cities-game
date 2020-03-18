@@ -8,7 +8,7 @@ use bin_client::state_machine::Alternator;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let mut game_api = provider::new_frontend_game_api();
+    let mut game_api = provider::new_frontend_game_api().await;
 
     let player_id = smart_cli::prompt_for_player_id().expect("This should never fail.");
 
