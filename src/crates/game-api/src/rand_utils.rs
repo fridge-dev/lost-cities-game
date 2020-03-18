@@ -1,5 +1,4 @@
-/// This is only needed for UTs...
-/// TODO Find a suitable replacement or remove this comment if this is really the best.
+/// This is only needed for UTs
 use rand::{
     distributions::{Distribution, Standard},
     Rng,

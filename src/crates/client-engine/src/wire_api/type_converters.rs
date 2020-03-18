@@ -45,7 +45,9 @@ impl TryFrom<ProtoGame> for GameState {
         for proto_card in proto_game.my_hand {
             my_hand.push(DecoratedCard::new(
                 proto_card.try_into()?,
-                true, // TODO isPlayable
+                // From client-side, allow all plays through to the backend.
+                // TODO compute this independently in client engine.
+                true,
             ))
         }
         let my_hand = my_hand;
