@@ -35,10 +35,10 @@ fn convert_lock_error<T>(e: PoisonError<T>) -> BackendGameError2 {
 impl ProtoLostCities for LostCitiesBackendServer {
 
     async fn host_game(&self, request: Request<ProtoHostGameReq>) -> Result<Response<ProtoHostGameReply>, Status> {
-        let inner = request.into_inner();
-        println!("Rcv: {:?}", inner);
+        let req = request.into_inner();
+        println!("[WIRE] {:?}", req);
 
-        let player_id = inner.try_into()?;
+        let player_id = req.try_into()?;
 
         let game_id = {
             match self.game_api.lock() {
@@ -48,16 +48,16 @@ impl ProtoLostCities for LostCitiesBackendServer {
             }
         }?;
 
-        Ok(Response::new(ProtoHostGameReply {
-            game_id
-        }))
+        let reply = ProtoHostGameReply { game_id };
+        println!("[WIRE] {:?}", reply);
+        Ok(Response::new(reply))
     }
 
     async fn join_game(&self, request: Request<ProtoJoinGameReq>) -> Result<Response<ProtoJoinGameReply>, Status> {
-        let inner = request.into_inner();
-        println!("Rcv: {:?}", inner);
+        let req = request.into_inner();
+        println!("[WIRE] {:?}", req);
 
-        let (game_id, player_id) = inner.try_into()?;
+        let (game_id, player_id) = req.try_into()?;
 
         let _ = {
             match self.game_api.lock() {
@@ -67,14 +67,16 @@ impl ProtoLostCities for LostCitiesBackendServer {
             }
         }?;
 
-        Ok(Response::new(ProtoJoinGameReply {}))
+        let reply = ProtoJoinGameReply {};
+        println!("[WIRE] {:?}", reply);
+        Ok(Response::new(reply))
     }
 
     async fn get_game_state(&self, request: Request<ProtoGetGameStateReq>) -> Result<Response<ProtoGetGameStateReply>, Status> {
-        let inner = request.into_inner();
-        println!("Rcv: {:?}", inner);
+        let req = request.into_inner();
+        println!("[WIRE] {:?}", req);
 
-        let (game_id, player_id) = inner.try_into()?;
+        let (game_id, player_id) = req.try_into()?;
 
         let game_state = {
             match self.game_api.lock() {
@@ -84,14 +86,16 @@ impl ProtoLostCities for LostCitiesBackendServer {
             }
         }?;
 
-        Ok(Response::new(game_state.into()))
+        let reply = game_state.into();
+        println!("[WIRE] {:?}", reply);
+        Ok(Response::new(reply))
     }
 
     async fn play_card(&self, request: Request<ProtoPlayCardReq>) -> Result<Response<ProtoPlayCardReply>, Status> {
-        let inner = request.into_inner();
-        println!("Rcv: {:?}", inner);
+        let req = request.into_inner();
+        println!("[WIRE] {:?}", req);
 
-        let play = inner.try_into()?;
+        let play = req.try_into()?;
 
         let _ = {
             match self.game_api.lock() {
@@ -101,6 +105,8 @@ impl ProtoLostCities for LostCitiesBackendServer {
             }
         }?;
 
-        Ok(Response::new(ProtoPlayCardReply {}))
+        let reply = ProtoPlayCardReply {};
+        println!("[WIRE] {:?}", reply);
+        Ok(Response::new(reply))
     }
 }

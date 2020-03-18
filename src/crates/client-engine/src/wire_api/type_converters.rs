@@ -1,13 +1,5 @@
 use crate::client_game_api::error::ClientGameError;
-use crate::wire_api::proto_lost_cities::{
-    ProtoPlayCardReq,
-    ProtoPlayTarget,
-    ProtoDrawPile,
-    ProtoCard,
-    ProtoColor,
-    ProtoGame,
-    ProtoGameStatus
-};
+use crate::wire_api::proto_lost_cities::{ProtoPlayCardReq, ProtoPlayTarget, ProtoDrawPile, ProtoCard, ProtoColor, ProtoGame, ProtoGameStatus, ProtoPlayHistory, ProtoDiscardPile, ProtoDiscardPileSurface};
 use game_api::types::{
     Play,
     Card,
@@ -28,17 +20,34 @@ use std::convert::{TryFrom, TryInto};
 // ============================= Reply converters =====================================
 // ============================= Proto -> App =========================================
 
+fn card_value_from_proto(value_u32: u32) -> Result<CardValue, ClientGameError> {
+    CardValue::try_from(value_u32)
+        .map_err(|msg| ClientGameError::MalformedResponse(Cow::from(msg)))
+}
+
+// ============================= From<Proto> for App ==================================
+
 impl TryFrom<ProtoGame> for GameState {
     type Error = ClientGameError;
 
     fn try_from(proto_game: ProtoGame) -> Result<Self, Self::Error> {
+        let my_plays = proto_game.my_plays
+            .ok_or(ClientGameError::MalformedResponse(Cow::from("Missing required MyPlays")))?
+            .try_into()?;
+        let op_plays = proto_game.opponent_plays
+            .ok_or(ClientGameError::MalformedResponse(Cow::from("Missing required OpponentPlays")))?
+            .try_into()?;
+        let neutral_board = proto_game.discard_pile
+            .ok_or(ClientGameError::MalformedResponse(Cow::from("Missing required DiscardPile")))?
+            .try_into()?;
+
         let game_board = GameBoard::new(
-            HashMap::new(),
-            HashMap::new(),
-            0,
-            0,
-            HashMap::new(),
-            0
+            my_plays,
+            op_plays,
+            proto_game.my_score,
+            proto_game.op_score,
+            neutral_board,
+            proto_game.draw_pile_cards_remaining as usize
         );
 
         let mut my_hand = Vec::with_capacity(proto_game.my_hand.len());
@@ -63,7 +72,80 @@ impl TryFrom<ProtoGame> for GameState {
     }
 }
 
-// ============================= From<Proto> for App ==================================
+impl TryFrom<ProtoPlayHistory> for HashMap<CardColor, Vec<CardValue>> {
+    type Error = ClientGameError;
+
+    fn try_from(proto_play_history: ProtoPlayHistory) -> Result<Self, Self::Error> {
+        let mut play_history = HashMap::with_capacity(5);
+
+        // Probably a better way to do this. But the '?' operator inside a closure which also
+        // has to account for Some/None makes other method signatures ugly and hard to understand.
+        for value_u32 in proto_play_history.red {
+            play_history.entry(CardColor::Red)
+                .or_insert_with(|| Vec::new())
+                .push(card_value_from_proto(value_u32)?);
+        }
+        for value_u32 in proto_play_history.blue {
+            play_history.entry(CardColor::Blue)
+                .or_insert_with(|| Vec::new())
+                .push(card_value_from_proto(value_u32)?);
+        }
+        for value_u32 in proto_play_history.green {
+            play_history.entry(CardColor::Green)
+                .or_insert_with(|| Vec::new())
+                .push(card_value_from_proto(value_u32)?);
+        }
+        for value_u32 in proto_play_history.white {
+            play_history.entry(CardColor::White)
+                .or_insert_with(|| Vec::new())
+                .push(card_value_from_proto(value_u32)?);
+        }
+        for value_u32 in proto_play_history.yellow {
+            play_history.entry(CardColor::Yellow)
+                .or_insert_with(|| Vec::new())
+                .push(card_value_from_proto(value_u32)?);
+        }
+
+        Ok(play_history)
+    }
+}
+
+impl TryFrom<ProtoDiscardPile> for HashMap<CardColor, (CardValue, usize)> {
+    type Error = ClientGameError;
+
+    fn try_from(proto_discard_pile: ProtoDiscardPile) -> Result<Self, Self::Error> {
+        let mut neutral_board: HashMap<CardColor, (CardValue, usize)> = HashMap::with_capacity(5);
+
+        if let Some(surface) = proto_discard_pile.red {
+            neutral_board.insert(CardColor::Red, surface.try_into()?);
+        }
+        if let Some(surface) = proto_discard_pile.blue {
+            neutral_board.insert(CardColor::Blue, surface.try_into()?);
+        }
+        if let Some(surface) = proto_discard_pile.green {
+            neutral_board.insert(CardColor::Green, surface.try_into()?);
+        }
+        if let Some(surface) = proto_discard_pile.white {
+            neutral_board.insert(CardColor::White, surface.try_into()?);
+        }
+        if let Some(surface) = proto_discard_pile.yellow {
+            neutral_board.insert(CardColor::Yellow, surface.try_into()?);
+        }
+
+        Ok(neutral_board)
+    }
+}
+
+impl TryFrom<ProtoDiscardPileSurface> for (CardValue, usize) {
+    type Error = ClientGameError;
+
+    fn try_from(proto_discard_surface: ProtoDiscardPileSurface) -> Result<Self, Self::Error> {
+        let card_value = card_value_from_proto(proto_discard_surface.value)?;
+        let remaining = proto_discard_surface.remaining as usize;
+
+        Ok((card_value, remaining))
+    }
+}
 
 impl TryFrom<ProtoGameStatus> for (GameStatus, bool) {
     type Error = ClientGameError;
@@ -87,8 +169,7 @@ impl TryFrom<ProtoCard> for Card {
         let color = CardColor::try_from(
             ProtoColor::try_from(proto_card.color)?
         )?;
-        let value = CardValue::try_from(proto_card.value)
-            .map_err(|msg| ClientGameError::MalformedResponse(Cow::from(msg)))?;
+        let value = card_value_from_proto(proto_card.value)?;
 
         Ok(Card::new(
             color,

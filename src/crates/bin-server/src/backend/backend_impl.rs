@@ -86,8 +86,6 @@ impl StorageBackedGameApi {
                 _ => BackendGameError2::Internal(Cause::Storage("Failed to load game state.", Arc::new(e))),
             })?;
 
-        println!("DEBUG: Loaded game state: {:?}", storage_game_state);
-
         Ok((storage_game_state, is_player_1))
     }
 }
