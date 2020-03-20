@@ -215,8 +215,8 @@ fn into_proto_discard_pile(neutral_draw_pile: &HashMap<CardColor, (CardValue, us
 
 fn into_proto_game_status(game_state: &GameState) -> ProtoGameStatus {
     match game_state.status() {
-        GameStatus::InProgress => {
-            if *game_state.is_my_turn() {
+        GameStatus::InProgress(my_turn) => {
+            if *my_turn {
                 ProtoGameStatus::YourTurn
             } else {
                 ProtoGameStatus::OpponentTurn

@@ -1,6 +1,6 @@
 use tonic::{Request, Response, Status};
 use crate::wire_api::proto_lost_cities::proto_lost_cities_server::ProtoLostCities;
-use crate::wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply};
+use crate::wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply, ProtoDescribeGameReq, ProtoQueryGamesReq, ProtoGetMatchableGamesReq, ProtoQueryGamesReply, ProtoDescribeGameReply, ProtoGetMatchableGamesReply};
 use game_api::api::GameApi2;
 use std::sync::{Mutex, PoisonError};
 use tonic::codegen::Arc;
@@ -106,6 +106,63 @@ impl ProtoLostCities for LostCitiesBackendServer {
         }?;
 
         let reply = ProtoPlayCardReply {};
+        println!("[WIRE] {:?}", reply);
+        Ok(Response::new(reply))
+    }
+
+    async fn describe_game(&self, request: Request<ProtoDescribeGameReq>) -> Result<Response<ProtoDescribeGameReply>, Status> {
+        let req = request.into_inner();
+        println!("[WIRE] {:?}", req);
+
+        let result = {
+            match self.game_api.lock() {
+                // TODO change `block_on` to use `.await` with channels
+                Ok(mut api) => unimplemented!(),
+                Err(e) => Err(convert_lock_error(e)),
+            }
+        }?;
+
+        let reply = ProtoDescribeGameReply {
+            metadata: None
+        };
+        println!("[WIRE] {:?}", reply);
+        Ok(Response::new(reply))
+    }
+
+    async fn query_games(&self, request: Request<ProtoQueryGamesReq>) -> Result<Response<ProtoQueryGamesReply>, Status> {
+        let req = request.into_inner();
+        println!("[WIRE] {:?}", req);
+
+        let result = {
+            match self.game_api.lock() {
+                // TODO change `block_on` to use `.await` with channels
+                Ok(mut api) => unimplemented!(),
+                Err(e) => Err(convert_lock_error(e)),
+            }
+        }?;
+
+        let reply = ProtoQueryGamesReply {
+            metadata: vec![]
+        };
+        println!("[WIRE] {:?}", reply);
+        Ok(Response::new(reply))
+    }
+
+    async fn get_matchable_games(&self, request: Request<ProtoGetMatchableGamesReq>) -> Result<Response<ProtoGetMatchableGamesReply>, Status> {
+        let req = request.into_inner();
+        println!("[WIRE] {:?}", req);
+
+        let result = {
+            match self.game_api.lock() {
+                // TODO change `block_on` to use `.await` with channels
+                Ok(mut api) => unimplemented!(),
+                Err(e) => Err(convert_lock_error(e)),
+            }
+        }?;
+
+        let reply = ProtoGetMatchableGamesReply {
+            metadata: vec![]
+        };
         println!("[WIRE] {:?}", reply);
         Ok(Response::new(reply))
     }

@@ -8,6 +8,7 @@ use std::borrow::Cow;
 pub enum ClientGameError {
     NotFound,
     UserInvalidArg,
+    GameNotStarted,
     BackendFault,
     BackendTimeout,
     BackendUnknown,
@@ -25,6 +26,7 @@ impl Display for ClientGameError {
             ClientGameError::UserInvalidArg => f.write_str("User fricked up."),
             ClientGameError::NotFound => f.write_str("Crap, where'd it go?"),
             ClientGameError::MalformedResponse(msg) => f.write_str(&format!("Server gave us a payload that ain't make sense: {}", msg)),
+            ClientGameError::GameNotStarted => f.write_str("Can't call that API because the game isn't started.")
         }
     }
 }

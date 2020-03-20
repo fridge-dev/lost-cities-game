@@ -363,8 +363,7 @@ mod tests {
         let game_state = GameState::new(
             game_board,
             my_hand,
-            true,
-            GameStatus::InProgress
+            GameStatus::InProgress(true)
         );
 
         println!();

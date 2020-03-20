@@ -63,7 +63,6 @@ impl GameMetadata {
 pub struct GameState {
     game_board: GameBoard,
     my_hand: Vec<DecoratedCard>,
-    is_my_turn: bool,
     status: GameStatus,
 }
 
@@ -71,13 +70,11 @@ impl GameState {
     pub fn new(
         game_board: GameBoard,
         my_hand: Vec<DecoratedCard>,
-        is_my_turn: bool,
         status: GameStatus,
     ) -> Self {
         GameState {
             game_board,
             my_hand,
-            is_my_turn,
             status,
         }
     }
@@ -88,10 +85,6 @@ impl GameState {
 
     pub fn my_hand(&self) -> &Vec<DecoratedCard> {
         &self.my_hand
-    }
-
-    pub fn is_my_turn(&self) -> &bool {
-        &self.is_my_turn
     }
 
     pub fn status(&self) -> &GameStatus {
@@ -177,7 +170,7 @@ fn fmt_hash_map<K: Debug, V: Debug>(map: &HashMap<K, V>) -> String {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum GameStatus {
-    InProgress,
+    InProgress(/* Is my turn */ bool),
     Complete(GameResult),
 }
 

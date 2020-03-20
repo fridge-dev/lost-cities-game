@@ -1,5 +1,5 @@
 use std::error::Error;
-use game_api::types::{Play, Card, CardTarget, DrawPile, GameState, GameStatus, GameResult};
+use game_api::types::{Play, GameState, GameStatus, GameResult};
 use game_api::api::GameApi2;
 use client_engine::client_game_api::provider;
 use client_engine::client_game_api::error::ClientGameError;
@@ -61,10 +61,15 @@ async fn create_alternator<'a>(
 ) -> Result<Alternator<'a, String>, ClientGameError> {
     let mut player_turns = Alternator::new(p1_id, p2_id);
 
-    // Tick player turn order forward if player 2 is supposed to start.
-    if !game_api.get_game_state(game_id.clone(), p1_id.to_owned()).await?.is_my_turn() {
-        assert!(game_api.get_game_state(game_id, p2_id.to_owned()).await?.is_my_turn());
-        player_turns.next();
+    let game_state = game_api.get_game_state(game_id.clone(), p1_id.to_owned()).await?;
+    if let GameStatus::InProgress(my_turn) = game_state.status() {
+        if !my_turn {
+            // Tick player turn order forward if player 2 is supposed to start.
+            player_turns.next();
+        }
+    } else {
+        // I have a ways to go to make the client resilient. Accepting a fragile "panic" here.
+        panic!("Game was matched, but is somehow not in-progress!");
     }
 
     Ok(player_turns)
@@ -72,7 +77,7 @@ async fn create_alternator<'a>(
 
 fn check_is_game_over_and_print_outcome(game_state: &GameState) -> bool {
     match game_state.status() {
-        GameStatus::InProgress => false,
+        GameStatus::InProgress(_) => false,
         GameStatus::Complete(result) => {
             match result {
                 GameResult::Win => print!("Congratulations, you win! "),

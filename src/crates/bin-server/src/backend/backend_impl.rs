@@ -188,12 +188,11 @@ fn convert_game_state(storage_game_state: StorageGameState, is_player_1: bool) -
     );
 
     let (my_hand, my_previous_plays, is_my_turn) = get_players_info(&storage_game_state, is_player_1);
-    let game_status = endgame::get_game_status(&game_board);
+    let game_status = endgame::get_game_status(&game_board, is_my_turn);
 
     GameState::new(
         game_board,
         plays::decorate_hand(my_hand.to_owned(), my_previous_plays),
-        is_my_turn,
         game_status
     )
 }

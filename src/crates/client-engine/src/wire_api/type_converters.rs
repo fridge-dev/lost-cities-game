@@ -61,12 +61,21 @@ impl TryFrom<ProtoGame> for GameState {
         }
         let my_hand = my_hand;
 
-        let (status, is_my_turn) = ProtoGameStatus::try_from(proto_game.status)?.try_into()?;
+        let status = match ProtoGameStatus::try_from(proto_game.status)? {
+            ProtoGameStatus::NoGameStatus => return Err(ClientGameError::MalformedResponse(Cow::from("Missing game status"))),
+            // GetGameState is only for in-progress or completed games.
+            ProtoGameStatus::Unmatched => return Err(ClientGameError::GameNotStarted),
+            // Valid options
+            ProtoGameStatus::YourTurn => GameStatus::InProgress(true),
+            ProtoGameStatus::OpponentTurn => GameStatus::InProgress(false),
+            ProtoGameStatus::EndWin => GameStatus::Complete(GameResult::Win),
+            ProtoGameStatus::EndLose => GameStatus::Complete(GameResult::Lose),
+            ProtoGameStatus::EndDraw => GameStatus::Complete(GameResult::Draw),
+        };
 
         Ok(GameState::new(
             game_board,
             my_hand,
-            is_my_turn,
             status,
         ))
     }
@@ -144,21 +153,6 @@ impl TryFrom<ProtoDiscardPileSurface> for (CardValue, usize) {
         let remaining = proto_discard_surface.remaining as usize;
 
         Ok((card_value, remaining))
-    }
-}
-
-impl TryFrom<ProtoGameStatus> for (GameStatus, bool) {
-    type Error = ClientGameError;
-
-    fn try_from(proto_game_status: ProtoGameStatus) -> Result<Self, Self::Error> {
-        match proto_game_status {
-            ProtoGameStatus::NoGameStatus => Err(ClientGameError::MalformedResponse(Cow::from("Missing game status"))),
-            ProtoGameStatus::YourTurn => Ok((GameStatus::InProgress, true)),
-            ProtoGameStatus::OpponentTurn => Ok((GameStatus::InProgress, false)),
-            ProtoGameStatus::EndWin => Ok((GameStatus::Complete(GameResult::Win), false)),
-            ProtoGameStatus::EndLose => Ok((GameStatus::Complete(GameResult::Lose), false)),
-            ProtoGameStatus::EndDraw => Ok((GameStatus::Complete(GameResult::Draw), false)),
-        }
     }
 }
 
