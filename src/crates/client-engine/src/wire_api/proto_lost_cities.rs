@@ -57,6 +57,38 @@ pub struct ProtoPlayCardReq {
 /// Nothing
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProtoPlayCardReply {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ProtoDescribeGameReq {
+    #[prost(string, tag = "1")]
+    pub game_id: std::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ProtoDescribeGameReply {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::std::option::Option<ProtoGameMetadata>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ProtoQueryGamesReq {
+    #[prost(string, tag = "1")]
+    pub player_id: std::string::String,
+    #[prost(enumeration = "ProtoGameStatus", tag = "2")]
+    pub status: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ProtoQueryGamesReply {
+    #[prost(message, repeated, tag = "1")]
+    pub metadata: ::std::vec::Vec<ProtoGameMetadata>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ProtoGetMatchableGamesReq {
+    #[prost(string, tag = "1")]
+    pub player_id: std::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ProtoGetMatchableGamesReply {
+    #[prost(message, repeated, tag = "1")]
+    pub metadata: ::std::vec::Vec<ProtoGameMetadata>,
+}
 // =======================================
 // Sub types
 // =======================================
@@ -80,6 +112,19 @@ pub struct ProtoPlayHistory {
     pub blue: ::std::vec::Vec<u32>,
     #[prost(uint32, repeated, tag = "5")]
     pub yellow: ::std::vec::Vec<u32>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ProtoGameMetadata {
+    #[prost(string, tag = "1")]
+    pub game_id: std::string::String,
+    #[prost(string, tag = "2")]
+    pub host_player_id: std::string::String,
+    #[prost(string, tag = "3")]
+    pub guest_player_id: std::string::String,
+    #[prost(enumeration = "ProtoGameStatus", tag = "4")]
+    pub status: i32,
+    #[prost(uint64, tag = "5")]
+    pub created_time_ms: u64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProtoGame {
@@ -153,6 +198,7 @@ pub enum ProtoGameStatus {
     EndWin = 3,
     EndLose = 4,
     EndDraw = 5,
+    Unmatched = 6,
 }
 #[doc = r" Generated client implementations."]
 pub mod proto_lost_cities_client {
@@ -246,6 +292,54 @@ pub mod proto_lost_cities_client {
             let codec = tonic::codec::ProstCodec::default();
             let path =
                 http::uri::PathAndQuery::from_static("/proto_lost_cities.ProtoLostCities/PlayCard");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn describe_game(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ProtoDescribeGameReq>,
+        ) -> Result<tonic::Response<super::ProtoDescribeGameReply>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/proto_lost_cities.ProtoLostCities/DescribeGame",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn query_games(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ProtoQueryGamesReq>,
+        ) -> Result<tonic::Response<super::ProtoQueryGamesReply>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/proto_lost_cities.ProtoLostCities/QueryGames",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn get_matchable_games(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ProtoGetMatchableGamesReq>,
+        ) -> Result<tonic::Response<super::ProtoGetMatchableGamesReply>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/proto_lost_cities.ProtoLostCities/GetMatchableGames",
+            );
             self.inner.unary(request.into_request(), path, codec).await
         }
     }

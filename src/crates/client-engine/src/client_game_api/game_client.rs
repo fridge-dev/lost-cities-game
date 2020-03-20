@@ -1,5 +1,5 @@
 use game_api::api::GameApi2;
-use game_api::types::{GameState, Play};
+use game_api::types::{GameState, Play, GameMetadata};
 use std::borrow::Cow;
 use std::convert::TryFrom;
 use tonic::transport::{Channel, Endpoint, Error};
@@ -46,6 +46,26 @@ impl GameApi2<ClientGameError> for GameClient {
             .await
             .map_err(|e| handle_error(e))
             .map(|_response| ())
+    }
+
+    async fn describe_game(&mut self, game_id: String) -> Result<GameMetadata, ClientGameError> {
+        unimplemented!()
+    }
+
+    async fn query_unmatched_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, ClientGameError> {
+        unimplemented!()
+    }
+
+    async fn query_in_progress_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, ClientGameError> {
+        unimplemented!()
+    }
+
+    async fn query_completed_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, ClientGameError> {
+        unimplemented!()
+    }
+
+    async fn query_all_unmatched_games(&mut self) -> Result<Vec<GameMetadata>, ClientGameError> {
+        unimplemented!()
     }
 
     async fn get_game_state(&mut self, game_id: String, player_id: String) -> Result<GameState, ClientGameError> {

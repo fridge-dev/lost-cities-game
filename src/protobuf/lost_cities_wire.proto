@@ -12,6 +12,9 @@ service ProtoLostCities {
     rpc JoinGame (ProtoJoinGameReq) returns (ProtoJoinGameReply) {}
     rpc GetGameState (ProtoGetGameStateReq) returns (ProtoGetGameStateReply) {}
     rpc PlayCard (ProtoPlayCardReq) returns (ProtoPlayCardReply) {}
+    rpc DescribeGame (ProtoDescribeGameReq) returns (ProtoDescribeGameReply) {}
+    rpc QueryGames (ProtoQueryGamesReq) returns (ProtoQueryGamesReply) {}
+    rpc GetMatchableGames (ProtoGetMatchableGamesReq) returns (ProtoGetMatchableGamesReply) {}
 }
 
 // =======================================
@@ -61,6 +64,31 @@ message ProtoPlayCardReply {
     // Nothing
 }
 
+message ProtoDescribeGameReq {
+    string game_id = 1;
+}
+
+message ProtoDescribeGameReply {
+    ProtoGameMetadata metadata = 1;
+}
+
+message ProtoQueryGamesReq {
+    string player_id = 1;
+    ProtoGameStatus status = 2;
+}
+
+message ProtoQueryGamesReply {
+    repeated ProtoGameMetadata metadata = 1;
+}
+
+message ProtoGetMatchableGamesReq {
+    string player_id = 1;
+}
+
+message ProtoGetMatchableGamesReply {
+    repeated ProtoGameMetadata metadata = 1;
+}
+
 // =======================================
 // Sub types
 // =======================================
@@ -99,6 +127,14 @@ enum ProtoPlayTarget {
     DISCARD = 2;
 }
 
+message ProtoGameMetadata {
+    string game_id = 1;
+    string host_player_id = 2;
+    string guest_player_id = 3;
+    ProtoGameStatus status = 4;
+    uint64 created_time_ms = 5;
+}
+
 message ProtoGame {
     repeated ProtoCard my_hand = 1;
     ProtoPlayHistory my_plays = 2;
@@ -130,4 +166,5 @@ enum ProtoGameStatus {
     END_WIN = 3;
     END_LOSE = 4;
     END_DRAW = 5;
+    UNMATCHED = 6;
 }

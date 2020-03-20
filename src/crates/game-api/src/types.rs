@@ -5,16 +5,37 @@ use std::convert::TryFrom;
 
 pub struct GameMetadata {
     game_id: String,
-    p1_id: String,
-    p2_id: String,
+    host_player_id: String,
+    creation_time_ms: u64,
+    matched_data: Option<(String, GameStatus)>,
 }
 
 impl GameMetadata {
-    pub fn new(game_id: String, p1_id: String, p2_id: String) -> Self {
+    pub fn new_matched(
+        game_id: String,
+        host_player_id: String,
+        creation_time_ms: u64,
+        guest_player_id: String,
+        status: GameStatus,
+    ) -> Self {
         GameMetadata {
             game_id,
-            p1_id,
-            p2_id
+            host_player_id,
+            creation_time_ms,
+            matched_data: Some((guest_player_id, status)),
+        }
+    }
+
+    pub fn new_unmatched(
+        game_id: String,
+        host_player_id: String,
+        creation_time_ms: u64,
+    ) -> Self {
+        GameMetadata {
+            game_id,
+            host_player_id,
+            creation_time_ms,
+            matched_data: None,
         }
     }
 
@@ -22,12 +43,16 @@ impl GameMetadata {
         &self.game_id
     }
 
-    pub fn p1_id(&self) -> &str {
-        &self.p1_id
+    pub fn host_player_id(&self) -> &str {
+        &self.host_player_id
     }
 
-    pub fn p2_id(&self) -> &str {
-        &self.p2_id
+    pub fn creation_time_ms(&self) -> u64 {
+        self.creation_time_ms
+    }
+
+    pub fn matched_data(&self) -> &Option<(String, GameStatus)> {
+        &self.matched_data
     }
 }
 

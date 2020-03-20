@@ -47,7 +47,7 @@ impl TryFrom<ProtoGame> for GameState {
             proto_game.my_score,
             proto_game.op_score,
             neutral_board,
-            proto_game.draw_pile_cards_remaining as usize
+            proto_game.draw_pile_cards_remaining as usize,
         );
 
         let mut my_hand = Vec::with_capacity(proto_game.my_hand.len());
