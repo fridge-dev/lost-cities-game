@@ -3,7 +3,7 @@ use game_api::types::{GameState, Play, GameMetadata};
 use std::borrow::Cow;
 use std::convert::TryFrom;
 use tonic::transport::{Channel, Endpoint, Error};
-use crate::wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoJoinGameReq, ProtoGetGameStateReq, ProtoPlayCardReq};
+use crate::wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoJoinGameReq, ProtoGetGameStateReq, ProtoPlayCardReq, ProtoDescribeGameReq};
 use crate::wire_api::proto_lost_cities::proto_lost_cities_client::ProtoLostCitiesClient;
 use crate::client_game_api::error::ClientGameError;
 
@@ -49,7 +49,15 @@ impl GameApi2<ClientGameError> for GameClient {
     }
 
     async fn describe_game(&mut self, game_id: String) -> Result<GameMetadata, ClientGameError> {
-        unimplemented!()
+        let request = tonic::Request::new(ProtoDescribeGameReq {
+            game_id
+        });
+
+        self.inner_client.describe_game(request)
+            .await
+            .map_err(|e| handle_error(e))
+            .and_then(|response| response.into_inner().metadata.ok_or(ClientGameError::MalformedResponse(Cow::from("Missing GameMetadata inside DescribeGame reply"))))
+            .and_then(|proto_game_metadata| GameMetadata::try_from(proto_game_metadata))
     }
 
     async fn query_unmatched_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, ClientGameError> {

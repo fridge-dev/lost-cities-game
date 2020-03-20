@@ -1,18 +1,6 @@
 use crate::client_game_api::error::ClientGameError;
-use crate::wire_api::proto_lost_cities::{ProtoPlayCardReq, ProtoPlayTarget, ProtoDrawPile, ProtoCard, ProtoColor, ProtoGame, ProtoGameStatus, ProtoPlayHistory, ProtoDiscardPile, ProtoDiscardPileSurface};
-use game_api::types::{
-    Play,
-    Card,
-    CardColor,
-    CardValue,
-    CardTarget,
-    DrawPile,
-    GameState,
-    GameStatus,
-    GameResult,
-    DecoratedCard,
-    GameBoard,
-};
+use crate::wire_api::proto_lost_cities::{ProtoPlayCardReq, ProtoPlayTarget, ProtoDrawPile, ProtoCard, ProtoColor, ProtoGame, ProtoGameStatus, ProtoPlayHistory, ProtoDiscardPile, ProtoDiscardPileSurface, ProtoGameMetadata};
+use game_api::types::{Play, Card, CardColor, CardValue, CardTarget, DrawPile, GameState, GameStatus, GameResult, DecoratedCard, GameBoard, GameMetadata};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
@@ -26,6 +14,39 @@ fn card_value_from_proto(value_u32: u32) -> Result<CardValue, ClientGameError> {
 }
 
 // ============================= From<Proto> for App ==================================
+
+impl TryFrom<ProtoGameMetadata> for GameMetadata {
+    type Error = ClientGameError;
+
+    fn try_from(proto_game_metadata: ProtoGameMetadata) -> Result<Self, Self::Error> {
+        let opt_status = match ProtoGameStatus::try_from(proto_game_metadata.status)? {
+            ProtoGameStatus::NoGameStatus => return Err(ClientGameError::MalformedResponse(Cow::from("Missing game status"))),
+            ProtoGameStatus::YourTurn => Some(GameStatus::InProgress(true)),
+            ProtoGameStatus::OpponentTurn => Some(GameStatus::InProgress(false)),
+            ProtoGameStatus::EndWin => Some(GameStatus::Complete(GameResult::Win)),
+            ProtoGameStatus::EndLose => Some(GameStatus::Complete(GameResult::Lose)),
+            ProtoGameStatus::EndDraw => Some(GameStatus::Complete(GameResult::Draw)),
+            ProtoGameStatus::Unmatched => None,
+        };
+
+        // TODO validation on presence of fields
+        if let Some(status) = opt_status {
+            Ok(GameMetadata::new_matched(
+                proto_game_metadata.game_id,
+                proto_game_metadata.host_player_id,
+                proto_game_metadata.created_time_ms,
+                proto_game_metadata.guest_player_id,
+                status,
+            ))
+        } else {
+            Ok(GameMetadata::new_unmatched(
+                proto_game_metadata.game_id,
+                proto_game_metadata.host_player_id,
+                proto_game_metadata.created_time_ms,
+            ))
+        }
+    }
+}
 
 impl TryFrom<ProtoGame> for GameState {
     type Error = ClientGameError;
