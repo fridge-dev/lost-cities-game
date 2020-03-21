@@ -3,7 +3,7 @@ use game_api::types::{GameState, Play, GameMetadata};
 use std::borrow::Cow;
 use std::convert::TryFrom;
 use tonic::transport::{Channel, Endpoint, Error};
-use crate::wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoJoinGameReq, ProtoGetGameStateReq, ProtoPlayCardReq, ProtoDescribeGameReq};
+use crate::wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoJoinGameReq, ProtoGetGameStateReq, ProtoPlayCardReq, ProtoDescribeGameReq, ProtoQueryGamesReq, ProtoGameStatus, ProtoGameMetadata, ProtoGetMatchableGamesReq};
 use crate::wire_api::proto_lost_cities::proto_lost_cities_client::ProtoLostCitiesClient;
 use crate::client_game_api::error::ClientGameError;
 
@@ -20,6 +20,25 @@ impl GameClient {
         Ok(GameClient {
             inner_client: ProtoLostCitiesClient::new(connection)
         })
+    }
+
+    async fn query_games(&mut self, player_id: String, status: ProtoGameStatus) -> Result<Vec<GameMetadata>, ClientGameError> {
+        let request = tonic::Request::new(ProtoQueryGamesReq {
+            player_id,
+            status: status as i32
+        });
+
+        let proto_games: Vec<ProtoGameMetadata> = self.inner_client.query_games(request)
+            .await
+            .map_err(|e| handle_error(e))
+            .map(|response| response.into_inner().games)?;
+
+        let mut games: Vec<GameMetadata> = Vec::with_capacity(proto_games.len());
+        for game_metadata in proto_games {
+            games.push(GameMetadata::try_from(game_metadata)?);
+        }
+
+        Ok(games)
     }
 }
 
@@ -61,19 +80,44 @@ impl GameApi2<ClientGameError> for GameClient {
     }
 
     async fn query_unmatched_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, ClientGameError> {
-        unimplemented!()
+        self.query_games(player_id, ProtoGameStatus::Unmatched).await
     }
 
     async fn query_in_progress_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, ClientGameError> {
-        unimplemented!()
+        // Hack incoming L0L. Justification: I've spent too much time on the data model,
+        // I want to focus on implementing backend and learning concurrency stuff
+        let mut games = self.query_games(player_id.clone(), ProtoGameStatus::YourTurn).await?;
+        games.extend(self.query_games(player_id, ProtoGameStatus::OpponentTurn).await?);
+
+        Ok(games)
     }
 
     async fn query_completed_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, ClientGameError> {
-        unimplemented!()
+        // Hack incoming L0L. Justification: I've spent too much time on the data model,
+        // I want to focus on implementing backend and learning concurrency stuff
+        let mut games = self.query_games(player_id.clone(), ProtoGameStatus::EndWin).await?;
+        games.extend(self.query_games(player_id.clone(), ProtoGameStatus::EndLose).await?);
+        games.extend(self.query_games(player_id, ProtoGameStatus::EndDraw).await?);
+
+        Ok(games)
     }
 
-    async fn query_all_unmatched_games(&mut self) -> Result<Vec<GameMetadata>, ClientGameError> {
-        unimplemented!()
+    async fn query_all_unmatched_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, ClientGameError> {
+        let request = tonic::Request::new(ProtoGetMatchableGamesReq {
+            player_id
+        });
+
+        let proto_games: Vec<ProtoGameMetadata> = self.inner_client.get_matchable_games(request)
+            .await
+            .map_err(|e| handle_error(e))
+            .map(|response| response.into_inner().games)?;
+
+        let mut games: Vec<GameMetadata> = Vec::with_capacity(proto_games.len());
+        for game_metadata in proto_games {
+            games.push(GameMetadata::try_from(game_metadata)?);
+        }
+
+        Ok(games)
     }
 
     async fn get_game_state(&mut self, game_id: String, player_id: String) -> Result<GameState, ClientGameError> {

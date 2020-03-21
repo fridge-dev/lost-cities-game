@@ -143,7 +143,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
         }?;
 
         let reply = ProtoQueryGamesReply {
-            metadata: vec![]
+            games: vec![]
         };
         println!("[WIRE] {:?}", reply);
         Ok(Response::new(reply))
@@ -162,7 +162,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
         }?;
 
         let reply = ProtoGetMatchableGamesReply {
-            metadata: vec![]
+            games: vec![]
         };
         println!("[WIRE] {:?}", reply);
         Ok(Response::new(reply))

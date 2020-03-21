@@ -129,7 +129,7 @@ impl GameApi2<BackendGameError2> for StorageBackedGameApi {
         unimplemented!()
     }
 
-    async fn query_all_unmatched_games(&mut self) -> Result<Vec<GameMetadata>, BackendGameError2> {
+    async fn query_all_unmatched_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, BackendGameError2> {
         unimplemented!()
     }
 

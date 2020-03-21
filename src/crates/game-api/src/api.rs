@@ -29,7 +29,7 @@ pub trait GameApi2<E: Error + Send + Sync + 'static> {
     async fn query_completed_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, E>;
 
     /// Get all (global) unmatched games - aka matchmaking LOL
-    async fn query_all_unmatched_games(&mut self) -> Result<Vec<GameMetadata>, E>;
+    async fn query_all_unmatched_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, E>;
 
     /// Load the state of the game as observed by the requested player.
     async fn get_game_state(&mut self, game_id: String, player_id: String) -> Result<GameState, E>;
