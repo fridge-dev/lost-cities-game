@@ -77,7 +77,7 @@ pub struct ProtoQueryGamesReq {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProtoQueryGamesReply {
     #[prost(message, repeated, tag = "1")]
-    pub metadata: ::std::vec::Vec<ProtoGameMetadata>,
+    pub games: ::std::vec::Vec<ProtoGameMetadata>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProtoGetMatchableGamesReq {
@@ -87,7 +87,7 @@ pub struct ProtoGetMatchableGamesReq {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProtoGetMatchableGamesReply {
     #[prost(message, repeated, tag = "1")]
-    pub metadata: ::std::vec::Vec<ProtoGameMetadata>,
+    pub games: ::std::vec::Vec<ProtoGameMetadata>,
 }
 // =======================================
 // Sub types

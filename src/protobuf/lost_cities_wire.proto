@@ -78,7 +78,7 @@ message ProtoQueryGamesReq {
 }
 
 message ProtoQueryGamesReply {
-    repeated ProtoGameMetadata metadata = 1;
+    repeated ProtoGameMetadata games = 1;
 }
 
 message ProtoGetMatchableGamesReq {
@@ -86,7 +86,7 @@ message ProtoGetMatchableGamesReq {
 }
 
 message ProtoGetMatchableGamesReply {
-    repeated ProtoGameMetadata metadata = 1;
+    repeated ProtoGameMetadata games = 1;
 }
 
 // =======================================
