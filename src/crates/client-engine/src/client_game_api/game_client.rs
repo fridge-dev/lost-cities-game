@@ -84,20 +84,23 @@ impl GameApi2<ClientGameError> for GameClient {
     }
 
     async fn query_in_progress_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, ClientGameError> {
-        // Hack incoming L0L. Justification: I've spent too much time on the data model,
-        // I want to focus on implementing backend and learning concurrency stuff
-        let mut games = self.query_games(player_id.clone(), ProtoGameStatus::YourTurn).await?;
-        games.extend(self.query_games(player_id, ProtoGameStatus::OpponentTurn).await?);
+        // Hack: Backend interprets status YourTurn and OpponentTurn as querying for in-progress
+        // games, so we just request for one of them.
+        //
+        // Justification: I've spent too much time on the data model, I want to focus on
+        // implementing backend and learning concurrency stuff
+        let games = self.query_games(player_id.clone(), ProtoGameStatus::YourTurn).await?;
 
         Ok(games)
     }
 
     async fn query_completed_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, ClientGameError> {
-        // Hack incoming L0L. Justification: I've spent too much time on the data model,
-        // I want to focus on implementing backend and learning concurrency stuff
-        let mut games = self.query_games(player_id.clone(), ProtoGameStatus::EndWin).await?;
-        games.extend(self.query_games(player_id.clone(), ProtoGameStatus::EndLose).await?);
-        games.extend(self.query_games(player_id, ProtoGameStatus::EndDraw).await?);
+        // Hack: Backend interprets status EndWin, EndLose, and EndDraw as querying for completed
+        // games, so we just request for one of them.
+        //
+        // Justification: I've spent too much time on the data model, I want to focus on
+        // implementing backend and learning concurrency stuff
+        let games = self.query_games(player_id.clone(), ProtoGameStatus::EndWin).await?;
 
         Ok(games)
     }

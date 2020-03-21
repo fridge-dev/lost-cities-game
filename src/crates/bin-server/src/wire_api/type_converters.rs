@@ -1,31 +1,5 @@
-use crate::wire_api::proto_lost_cities::{
-    ProtoCard,
-    ProtoColor,
-    ProtoDiscardPile,
-    ProtoDiscardPileSurface,
-    ProtoDrawPile,
-    ProtoGame,
-    ProtoGameStatus,
-    ProtoGetGameStateReply,
-    ProtoGetGameStateReq,
-    ProtoHostGameReq,
-    ProtoJoinGameReq,
-    ProtoPlayCardReq,
-    ProtoPlayHistory,
-    ProtoPlayTarget,
-};
-use game_api::types::{
-    Card,
-    CardColor,
-    CardTarget,
-    CardValue,
-    DecoratedCard,
-    DrawPile,
-    GameResult,
-    GameState,
-    GameStatus,
-    Play,
-};
+use crate::wire_api::proto_lost_cities::{ProtoCard, ProtoColor, ProtoDiscardPile, ProtoDiscardPileSurface, ProtoDrawPile, ProtoGame, ProtoGameStatus, ProtoGetGameStateReply, ProtoGetGameStateReq, ProtoHostGameReq, ProtoJoinGameReq, ProtoPlayCardReq, ProtoPlayHistory, ProtoPlayTarget, ProtoGameMetadata, ProtoDescribeGameReq, ProtoQueryGamesReq, ProtoGetMatchableGamesReq};
+use game_api::types::{Card, CardColor, CardTarget, CardValue, DecoratedCard, DrawPile, GameResult, GameState, GameStatus, Play, GameMetadata};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use tonic::{Code, Status};
@@ -109,6 +83,43 @@ impl TryFrom<ProtoPlayCardReq> for Play {
             card_target,
             draw_pile,
         ))
+    }
+}
+
+impl TryFrom<ProtoDescribeGameReq> for String {
+    type Error = Status;
+
+    fn try_from(req: ProtoDescribeGameReq) -> Result<Self, Self::Error> {
+        if req.game_id.is_empty() {
+            return Err(Status::new(Code::InvalidArgument, "Missing GameId"));
+        }
+
+        Ok(req.game_id)
+    }
+}
+
+impl TryFrom<ProtoQueryGamesReq> for (String, ProtoGameStatus) {
+    type Error = Status;
+
+    fn try_from(req: ProtoQueryGamesReq) -> Result<Self, Self::Error> {
+        if req.player_id.is_empty() {
+            return Err(Status::new(Code::InvalidArgument, "Missing PlayedId"));
+        }
+        let game_status = ProtoGameStatus::try_from(req.status)?;
+
+        Ok((req.player_id, game_status))
+    }
+}
+
+impl TryFrom<ProtoGetMatchableGamesReq> for String {
+    type Error = Status;
+
+    fn try_from(req: ProtoGetMatchableGamesReq) -> Result<Self, Self::Error> {
+        if req.player_id.is_empty() {
+            return Err(Status::new(Code::InvalidArgument, "Missing PlayedId"));
+        }
+
+        Ok(req.player_id)
     }
 }
 
@@ -258,6 +269,46 @@ impl From<CardTarget> for ProtoPlayTarget {
         match card_target {
             CardTarget::Player => ProtoPlayTarget::PlayerBoard,
             CardTarget::Neutral => ProtoPlayTarget::Discard,
+        }
+    }
+}
+
+impl From<GameMetadata> for ProtoGameMetadata {
+    fn from(game_metadata: GameMetadata) -> Self {
+        let (guest_player_id, status): (&str, ProtoGameStatus) = match game_metadata.matched_data() {
+            None => ("", ProtoGameStatus::NoGameStatus),
+            Some((guest_player_id, status)) => (guest_player_id, ProtoGameStatus::from(*status)),
+        };
+
+        // TODO clone inefficiency. We're dropping `game_metadata`, we should be able to
+        // pass ownership of the strings. The interface doesn't allow for it now, though.
+        ProtoGameMetadata {
+            game_id: game_metadata.game_id().to_owned(),
+            host_player_id: game_metadata.host_player_id().to_owned(),
+            guest_player_id: guest_player_id.to_owned(),
+            status: status as i32,
+            created_time_ms: game_metadata.creation_time_ms(),
+        }
+    }
+}
+
+impl From<GameStatus> for ProtoGameStatus {
+    fn from(game_status: GameStatus) -> Self {
+        match game_status {
+            GameStatus::InProgress(is_my_turn) => {
+                if is_my_turn {
+                    ProtoGameStatus::YourTurn
+                } else {
+                    ProtoGameStatus::OpponentTurn
+                }
+            },
+            GameStatus::Complete(result) => {
+                match result {
+                    GameResult::Win => ProtoGameStatus::EndWin,
+                    GameResult::Lose => ProtoGameStatus::EndLose,
+                    GameResult::Draw => ProtoGameStatus::EndDraw,
+                }
+            },
         }
     }
 }

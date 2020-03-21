@@ -1,6 +1,6 @@
 use tonic::{Request, Response, Status};
 use crate::wire_api::proto_lost_cities::proto_lost_cities_server::ProtoLostCities;
-use crate::wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply, ProtoDescribeGameReq, ProtoQueryGamesReq, ProtoGetMatchableGamesReq, ProtoQueryGamesReply, ProtoDescribeGameReply, ProtoGetMatchableGamesReply};
+use crate::wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoHostGameReply, ProtoJoinGameReq, ProtoJoinGameReply, ProtoGetGameStateReq, ProtoGetGameStateReply, ProtoPlayCardReq, ProtoPlayCardReply, ProtoDescribeGameReq, ProtoQueryGamesReq, ProtoGetMatchableGamesReq, ProtoQueryGamesReply, ProtoDescribeGameReply, ProtoGetMatchableGamesReply, ProtoGameMetadata, ProtoGameStatus};
 use game_api::api::GameApi2;
 use std::sync::{Mutex, PoisonError};
 use tonic::codegen::Arc;
@@ -8,6 +8,7 @@ use futures::executor::block_on;
 use crate::backend;
 use crate::backend::backend_error::{BackendGameError2, Cause};
 use std::convert::TryInto;
+use game_api::types::GameMetadata;
 
 /// Backend server is the entry point which will implement the gRPC server type.
 pub struct LostCitiesBackendServer {
@@ -25,14 +26,7 @@ impl LostCitiesBackendServer {
     }
 }
 
-fn convert_lock_error<T>(e: PoisonError<T>) -> BackendGameError2 {
-    // I don't know how to recover from this. Recreate game handler?
-    println!("ERROR: GameApi lock was poisoned. Here's the err: {}", e);
-    BackendGameError2::Internal(Cause::Internal("Failed to acquire GameApi lock"))
-}
-
 #[tonic::async_trait]
-#[allow(unused_mut)] // TODO remove this once methods are implemented
 impl ProtoLostCities for LostCitiesBackendServer {
 
     async fn host_game(&self, request: Request<ProtoHostGameReq>) -> Result<Response<ProtoHostGameReply>, Status> {
@@ -115,16 +109,18 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let req = request.into_inner();
         println!("[WIRE] {:?}", req);
 
-        let result = {
+        let game_id = req.try_into()?;
+
+        let game_metadata = {
             match self.game_api.lock() {
                 // TODO change `block_on` to use `.await` with channels
-                Ok(mut api) => unimplemented!(),
+                Ok(mut api) => block_on(api.describe_game(game_id)),
                 Err(e) => Err(convert_lock_error(e)),
             }
         }?;
 
         let reply = ProtoDescribeGameReply {
-            metadata: None
+            metadata: Some(ProtoGameMetadata::from(game_metadata))
         };
         println!("[WIRE] {:?}", reply);
         Ok(Response::new(reply))
@@ -134,16 +130,33 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let req = request.into_inner();
         println!("[WIRE] {:?}", req);
 
+        let (player_id, game_status): (String, ProtoGameStatus) = req.try_into()?;
+        if game_status == ProtoGameStatus::NoGameStatus {
+            return Err(Status::invalid_argument("Unspecified game status"));
+        }
+
         let result = {
             match self.game_api.lock() {
-                // TODO change `block_on` to use `.await` with channels
-                Ok(mut api) => unimplemented!(),
                 Err(e) => Err(convert_lock_error(e)),
+                Ok(mut api) => {
+                    let future_result = match game_status {
+                        ProtoGameStatus::YourTurn => api.query_in_progress_games(player_id),
+                        ProtoGameStatus::OpponentTurn => api.query_in_progress_games(player_id),
+                        ProtoGameStatus::EndWin => api.query_completed_games(player_id),
+                        ProtoGameStatus::EndLose => api.query_completed_games(player_id),
+                        ProtoGameStatus::EndDraw => api.query_completed_games(player_id),
+                        ProtoGameStatus::Unmatched => api.query_unmatched_games(player_id),
+                        ProtoGameStatus::NoGameStatus => panic!("Impossible! We short-circuited this arm"),
+                    };
+
+                    // TODO change `block_on` to use `.await` with channels
+                    block_on(future_result)
+                },
             }
         }?;
 
         let reply = ProtoQueryGamesReply {
-            games: vec![]
+            games: into_proto_game_metadata_vec(result)
         };
         println!("[WIRE] {:?}", reply);
         Ok(Response::new(reply))
@@ -153,18 +166,35 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let req = request.into_inner();
         println!("[WIRE] {:?}", req);
 
+        let player_id = req.try_into()?;
+
         let result = {
             match self.game_api.lock() {
                 // TODO change `block_on` to use `.await` with channels
-                Ok(mut api) => unimplemented!(),
+                Ok(mut api) => block_on(api.query_all_unmatched_games(player_id)),
                 Err(e) => Err(convert_lock_error(e)),
             }
         }?;
 
         let reply = ProtoGetMatchableGamesReply {
-            games: vec![]
+            games: into_proto_game_metadata_vec(result)
         };
         println!("[WIRE] {:?}", reply);
         Ok(Response::new(reply))
     }
+}
+
+fn convert_lock_error<T>(e: PoisonError<T>) -> BackendGameError2 {
+    // I don't know how to recover from this. Recreate game handler?
+    println!("ERROR: GameApi lock was poisoned. Here's the err: {}", e);
+    BackendGameError2::Internal(Cause::Internal("Failed to acquire GameApi lock"))
+}
+
+fn into_proto_game_metadata_vec(game_metadata_vec: Vec<GameMetadata>) -> Vec<ProtoGameMetadata> {
+    let games: Vec<ProtoGameMetadata> = Vec::with_capacity(game_metadata_vec.len());
+    for game_metadata in game_metadata_vec {
+        ProtoGameMetadata::from(game_metadata);
+    }
+
+    games
 }

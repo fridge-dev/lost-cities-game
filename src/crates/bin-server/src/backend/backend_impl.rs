@@ -1,3 +1,4 @@
+#![allow(unused_variables)] // TODO remove
 use game_api::api::GameApi2;
 use game_api::types::{GameState, Play, Card, GameBoard, CardTarget, CardColor, CardValue, DrawPile, GameMetadata};
 use rules::deck::DeckFactory;
