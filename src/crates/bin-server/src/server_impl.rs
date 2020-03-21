@@ -32,6 +32,7 @@ fn convert_lock_error<T>(e: PoisonError<T>) -> BackendGameError2 {
 }
 
 #[tonic::async_trait]
+#[allow(unused_mut)] // TODO remove this once methods are implemented
 impl ProtoLostCities for LostCitiesBackendServer {
 
     async fn host_game(&self, request: Request<ProtoHostGameReq>) -> Result<Response<ProtoHostGameReply>, Status> {
