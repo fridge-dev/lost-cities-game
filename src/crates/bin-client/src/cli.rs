@@ -1,5 +1,5 @@
 /// Simple I/O
-mod raw {
+pub mod raw_cli {
     use std::{io, process};
 
     pub fn prompt_for_input(prompt: &str) -> String {
@@ -21,7 +21,7 @@ mod raw {
 
 /// CLI module which has logic to parse the CLI input.
 pub mod smart_cli {
-    use super::raw::prompt_for_input;
+    use super::raw_cli::prompt_for_input;
     use std::borrow::Cow;
     use game_api::types::{CardTarget, Card, DrawPile, CardColor, DecoratedCard};
 
