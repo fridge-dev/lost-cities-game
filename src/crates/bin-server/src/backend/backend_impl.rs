@@ -1,4 +1,3 @@
-#![allow(unused_variables)] // TODO remove
 use game_api::api::GameApi2;
 use game_api::types::{GameState, Play, Card, GameBoard, CardTarget, CardColor, CardValue, DrawPile, GameMetadata, GameStatus, GameResult};
 use rules::deck::DeckFactory;
@@ -142,19 +141,19 @@ impl GameApi2<BackendGameError2> for StorageBackedGameApi {
             })
     }
 
-    async fn query_unmatched_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, BackendGameError2> {
+    async fn query_unmatched_games(&mut self, _player_id: String) -> Result<Vec<GameMetadata>, BackendGameError2> {
         unimplemented!()
     }
 
-    async fn query_in_progress_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, BackendGameError2> {
+    async fn query_in_progress_games(&mut self, _player_id: String) -> Result<Vec<GameMetadata>, BackendGameError2> {
         unimplemented!()
     }
 
-    async fn query_completed_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, BackendGameError2> {
+    async fn query_completed_games(&mut self, _player_id: String) -> Result<Vec<GameMetadata>, BackendGameError2> {
         unimplemented!()
     }
 
-    async fn query_all_unmatched_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, BackendGameError2> {
+    async fn query_all_unmatched_games(&mut self, _player_id: String) -> Result<Vec<GameMetadata>, BackendGameError2> {
         unimplemented!()
     }
 

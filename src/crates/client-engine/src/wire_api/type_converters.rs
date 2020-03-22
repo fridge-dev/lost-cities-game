@@ -29,8 +29,16 @@ impl TryFrom<ProtoGameMetadata> for GameMetadata {
             ProtoGameStatus::Unmatched => None,
         };
 
-        // TODO validation on presence of fields
+        if proto_game_metadata.game_id.is_empty() {
+            return Err(ClientGameError::MalformedResponse(Cow::from("Missing GameId")));
+        }
+        if proto_game_metadata.host_player_id.is_empty() {
+            return Err(ClientGameError::MalformedResponse(Cow::from("Missing HostPlayerId")));
+        }
         if let Some(status) = opt_status {
+            if proto_game_metadata.guest_player_id.is_empty() {
+                return Err(ClientGameError::MalformedResponse(Cow::from("Missing GuestPlayerId")));
+            }
             Ok(GameMetadata::new_matched(
                 proto_game_metadata.game_id,
                 proto_game_metadata.host_player_id,

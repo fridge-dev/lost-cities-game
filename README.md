@@ -66,6 +66,8 @@ Your hand:
 1. Implement backend with file storage
 1. Figure out nio task model for backend
 1. See if it's easily possible to separate storage types from API types
+1. Implement match browsing
+1. Implement match history
 
 **Frontend**
 1. Implement FE as "screens" where each screen is a loop with re-drawing.

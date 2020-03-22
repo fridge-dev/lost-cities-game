@@ -8,16 +8,16 @@ pub enum MainMenuAction {
     ReadRules,
 }
 
-const MAIN_MENU_PROMPT: &str = "\
-Welcome to the Lost Cities game! \
- \
-What would you like to do? (press one of the following keys) \
-h => [h]ost new game \
-j => [j]oin existing game \
-r => [r]ead the rules \
+const MAIN_MENU_PROMPT: &str = "\n\
+What would you like to do? (press one of the following keys)\n\
+h => [h]ost new game\n\
+j => [j]oin existing game\n\
+r => [r]ead the rules\n\
 ";
 
 pub fn handle_main_menu() -> MainMenuAction {
+    println!("Welcome to the Lost Cities game!");
+
     loop {
         match prompt_for_main_menu_action() {
             Ok(action) => return action,
@@ -36,3 +36,12 @@ fn prompt_for_main_menu_action() -> smart_cli::PromptResult<MainMenuAction> {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::screens::main_menu::MAIN_MENU_PROMPT;
+
+    #[test]
+    fn multiline_print() {
+        println!("{}", MAIN_MENU_PROMPT);
+    }
+}
