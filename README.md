@@ -68,17 +68,12 @@ Your hand:
 1. See if it's easily possible to separate storage types from API types
 
 **Frontend**
-1. Implement main.rs state machine (turns, end game)
-1. Improve turn selection UI
-    * Sort cards in hand
-    * Add review section
-    * Add better selection mechanism
-    * Add turn indicator
+1. Implement FE as "screens" where each screen is a loop with re-drawing.
+1. Improve card selection (not number based)
 1. Add duplicate rule checks on the FE
 1. Improve board drawer
 
 **General**
-1. Delete 'api' crate and refactor client/server GameApi usage.
 1. Figure out best way to model error propagation to top level.
 1. Figure out how to make sub-crates tests run during top-level cargo build
 1. Add automated test of a game
@@ -99,3 +94,8 @@ Your hand:
 1. Implement main.rs board drawer
 1. Rules: handle end game
 1. Split game into separate backend and frontend processes.
+1. Delete 'api' crate and refactor client/server GameApi usage.
+1. Implement main.rs state machine (turns, end game)
+1. Sort card in hand in UI
+1. Review turn before executing
+1. Split frontend into multiple FE processes; one-per-player.

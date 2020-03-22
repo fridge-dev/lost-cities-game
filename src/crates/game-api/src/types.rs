@@ -185,7 +185,7 @@ pub enum GameResult {
 /// Card struct below is the storage layer's representation of a Card.
 ///
 /// Maybe I should change/move the definitions to be as such? Maybe later...
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct DecoratedCard {
     card: Card,
     is_playable: bool,
@@ -208,7 +208,7 @@ impl DecoratedCard {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Card {
     card_color: CardColor,
     card_value: CardValue,
@@ -231,7 +231,7 @@ impl Card {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub enum CardColor {
     Red,
     Green,
@@ -367,5 +367,32 @@ mod tests {
         }
 
         assert!(CardValue::try_from(0).is_err())
+    }
+
+    #[test]
+    fn hand_sorter() {
+        let mut hand = vec![
+            DecoratedCard::new(Card::new(CardColor::Red, CardValue::Wager), true),
+            DecoratedCard::new(Card::new(CardColor::Blue, CardValue::Two), false),
+            DecoratedCard::new(Card::new(CardColor::Green, CardValue::Three), true),
+            DecoratedCard::new(Card::new(CardColor::White, CardValue::Four), false),
+            DecoratedCard::new(Card::new(CardColor::Red, CardValue::Five), false),
+            DecoratedCard::new(Card::new(CardColor::Blue, CardValue::Six), true),
+            DecoratedCard::new(Card::new(CardColor::Green, CardValue::Seven), false),
+            DecoratedCard::new(Card::new(CardColor::White, CardValue::Eight), true),
+        ];
+
+        hand.sort();
+
+        assert_eq!(hand, vec![
+            DecoratedCard::new(Card::new(CardColor::Red, CardValue::Wager), true),
+            DecoratedCard::new(Card::new(CardColor::Red, CardValue::Five), false),
+            DecoratedCard::new(Card::new(CardColor::Green, CardValue::Three), true),
+            DecoratedCard::new(Card::new(CardColor::Green, CardValue::Seven), false),
+            DecoratedCard::new(Card::new(CardColor::White, CardValue::Four), false),
+            DecoratedCard::new(Card::new(CardColor::White, CardValue::Eight), true),
+            DecoratedCard::new(Card::new(CardColor::Blue, CardValue::Two), false),
+            DecoratedCard::new(Card::new(CardColor::Blue, CardValue::Six), true),
+        ]);
     }
 }

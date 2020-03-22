@@ -80,6 +80,7 @@ impl TryFrom<ProtoGame> for GameState {
                 true,
             ))
         }
+        my_hand.sort();
         let my_hand = my_hand;
 
         let status = match ProtoGameStatus::try_from(proto_game.status)? {
