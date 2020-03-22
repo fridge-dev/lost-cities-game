@@ -276,7 +276,7 @@ impl From<CardTarget> for ProtoPlayTarget {
 impl From<GameMetadata> for ProtoGameMetadata {
     fn from(game_metadata: GameMetadata) -> Self {
         let (guest_player_id, status): (&str, ProtoGameStatus) = match game_metadata.matched_data() {
-            None => ("", ProtoGameStatus::NoGameStatus),
+            None => ("", ProtoGameStatus::Unmatched),
             Some((guest_player_id, status)) => (guest_player_id, ProtoGameStatus::from(*status)),
         };
 

@@ -6,6 +6,7 @@ use client_engine::client_game_api::error::ClientGameError;
 use game_api::api::GameApi2;
 use std::error::Error;
 use std::time::Duration;
+use std::thread;
 
 /// Return Ok when game is filled
 pub async fn wait_for_game_to_fill(
@@ -19,7 +20,7 @@ pub async fn wait_for_game_to_fill(
             return Ok(());
         } else {
             // Sleep 5 seconds
-            tokio_timer::sleep(Duration::new(5, 0));
+            thread::sleep(Duration::new(5, 0));
             continue;
         }
     }
@@ -68,6 +69,11 @@ pub async fn execute_game_loop(
     println!("Welcome. This game will feature '{}' vs '{}'.", my_player_id, op_player_id);
     println!();
 
+    println!("{}", game_api.get_game_state(game_id.clone(), my_player_id.clone()).await?);
+
+    // This is kind of lame for flow control. Oh well. :P
+    let mut first_loop = true;
+
     // Until end of game:
     // 1. Wait for op turn
     // 2. End game check
@@ -75,12 +81,20 @@ pub async fn execute_game_loop(
     // 4. End game check
     loop {
         // 1. Wait for op turn
+        if !first_loop {
+            println!("-- {}'s turn --", op_player_id);
+            println!();
+            println!("Waiting...");
+        } else {
+            first_loop = false;
+        }
         let game_state = wait_for_my_turn(
             &mut game_api,
             game_id.clone(),
-            my_player_id.clone()
+            my_player_id.clone(),
         ).await?;
 
+        println!();
         println!("{}", game_state);
 
         // 2. Check for end game
@@ -102,6 +116,8 @@ pub async fn execute_game_loop(
 
         // 4. End game check
         let game_state = game_api.get_game_state(game_id.clone(), my_player_id.clone()).await?;
+        println!();
+        println!("{}", game_state);
         if check_is_game_over_and_print_outcome(&game_state) {
             break;
         }
@@ -114,7 +130,7 @@ pub async fn execute_game_loop(
 async fn wait_for_my_turn(
     game_api: &mut Box<dyn GameApi2<ClientGameError>>,
     game_id: String,
-    my_player_id: String
+    my_player_id: String,
 ) -> Result<GameState, Box<dyn Error>> {
     loop {
         let game_state = game_api.get_game_state(game_id.clone(), my_player_id.clone()).await?;
@@ -123,7 +139,7 @@ async fn wait_for_my_turn(
             if !is_my_turn {
                 // Sleep 2 seconds. This makes game playable, but not a great experience.
                 // TODO Implement server->client push.
-                tokio_timer::sleep(Duration::new(2, 0));
+                thread::sleep(Duration::new(2, 0));
                 continue;
             }
         }

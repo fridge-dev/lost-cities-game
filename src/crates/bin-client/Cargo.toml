@@ -15,4 +15,3 @@ game-api = { path = "../game-api" }
 
 # 3p
 tokio = { version = "0.2", features = ["full"] }
-tokio-timer = "0.2.11"

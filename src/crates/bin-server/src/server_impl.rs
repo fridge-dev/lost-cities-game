@@ -9,6 +9,7 @@ use crate::backend;
 use crate::backend::backend_error::{BackendGameError2, Cause};
 use std::convert::TryInto;
 use game_api::types::GameMetadata;
+use chrono::Utc;
 
 /// Backend server is the entry point which will implement the gRPC server type.
 pub struct LostCitiesBackendServer {
@@ -31,7 +32,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
 
     async fn host_game(&self, request: Request<ProtoHostGameReq>) -> Result<Response<ProtoHostGameReply>, Status> {
         let req = request.into_inner();
-        println!("[WIRE] {:?}", req);
+        println!("{} - [WIRE] {:?}", Utc::now(), req);
 
         let player_id = req.try_into()?;
 
@@ -44,13 +45,13 @@ impl ProtoLostCities for LostCitiesBackendServer {
         }?;
 
         let reply = ProtoHostGameReply { game_id };
-        println!("[WIRE] {:?}", reply);
+        println!("{} - [WIRE] {:?}", Utc::now(), reply);
         Ok(Response::new(reply))
     }
 
     async fn join_game(&self, request: Request<ProtoJoinGameReq>) -> Result<Response<ProtoJoinGameReply>, Status> {
         let req = request.into_inner();
-        println!("[WIRE] {:?}", req);
+        println!("{} - [WIRE] {:?}", Utc::now(), req);
 
         let (game_id, player_id) = req.try_into()?;
 
@@ -63,13 +64,13 @@ impl ProtoLostCities for LostCitiesBackendServer {
         }?;
 
         let reply = ProtoJoinGameReply {};
-        println!("[WIRE] {:?}", reply);
+        println!("{} - [WIRE] {:?}", Utc::now(), reply);
         Ok(Response::new(reply))
     }
 
     async fn get_game_state(&self, request: Request<ProtoGetGameStateReq>) -> Result<Response<ProtoGetGameStateReply>, Status> {
         let req = request.into_inner();
-        println!("[WIRE] {:?}", req);
+        println!("{} - [WIRE] {:?}", Utc::now(), req);
 
         let (game_id, player_id) = req.try_into()?;
 
@@ -82,13 +83,13 @@ impl ProtoLostCities for LostCitiesBackendServer {
         }?;
 
         let reply = game_state.into();
-        println!("[WIRE] {:?}", reply);
+        println!("{} - [WIRE] {:?}", Utc::now(), reply);
         Ok(Response::new(reply))
     }
 
     async fn play_card(&self, request: Request<ProtoPlayCardReq>) -> Result<Response<ProtoPlayCardReply>, Status> {
         let req = request.into_inner();
-        println!("[WIRE] {:?}", req);
+        println!("{} - [WIRE] {:?}", Utc::now(), req);
 
         let play = req.try_into()?;
 
@@ -101,13 +102,13 @@ impl ProtoLostCities for LostCitiesBackendServer {
         }?;
 
         let reply = ProtoPlayCardReply {};
-        println!("[WIRE] {:?}", reply);
+        println!("{} - [WIRE] {:?}", Utc::now(), reply);
         Ok(Response::new(reply))
     }
 
     async fn describe_game(&self, request: Request<ProtoDescribeGameReq>) -> Result<Response<ProtoDescribeGameReply>, Status> {
         let req = request.into_inner();
-        println!("[WIRE] {:?}", req);
+        println!("{} - [WIRE] {:?}", Utc::now(), req);
 
         let game_id = req.try_into()?;
 
@@ -122,13 +123,13 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let reply = ProtoDescribeGameReply {
             metadata: Some(ProtoGameMetadata::from(game_metadata))
         };
-        println!("[WIRE] {:?}", reply);
+        println!("{} - [WIRE] {:?}", Utc::now(), reply);
         Ok(Response::new(reply))
     }
 
     async fn query_games(&self, request: Request<ProtoQueryGamesReq>) -> Result<Response<ProtoQueryGamesReply>, Status> {
         let req = request.into_inner();
-        println!("[WIRE] {:?}", req);
+        println!("{} - [WIRE] {:?}", Utc::now(), req);
 
         let (player_id, game_status): (String, ProtoGameStatus) = req.try_into()?;
         if game_status == ProtoGameStatus::NoGameStatus {
@@ -158,13 +159,13 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let reply = ProtoQueryGamesReply {
             games: into_proto_game_metadata_vec(result)
         };
-        println!("[WIRE] {:?}", reply);
+        println!("{} - [WIRE] {:?}", Utc::now(), reply);
         Ok(Response::new(reply))
     }
 
     async fn get_matchable_games(&self, request: Request<ProtoGetMatchableGamesReq>) -> Result<Response<ProtoGetMatchableGamesReply>, Status> {
         let req = request.into_inner();
-        println!("[WIRE] {:?}", req);
+        println!("{} - [WIRE] {:?}", Utc::now(), req);
 
         let player_id = req.try_into()?;
 
@@ -179,7 +180,7 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let reply = ProtoGetMatchableGamesReply {
             games: into_proto_game_metadata_vec(result)
         };
-        println!("[WIRE] {:?}", reply);
+        println!("{} - [WIRE] {:?}", Utc::now(), reply);
         Ok(Response::new(reply))
     }
 }

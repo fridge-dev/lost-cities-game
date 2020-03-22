@@ -35,6 +35,8 @@ async fn execute_single_game(player_id: String) -> Result<(), Box<dyn Error>> {
             println!("Created Game ID = '{}'", game_id);
 
             // Poll for guest joining game
+            println!();
+            println!("Waiting for player to join...");
             game::wait_for_game_to_fill(&mut game_api, game_id.clone()).await?;
 
             game_id
