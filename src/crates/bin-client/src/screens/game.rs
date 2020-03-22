@@ -69,10 +69,15 @@ pub async fn execute_game_loop(
     println!("Welcome. This game will feature '{}' vs '{}'.", my_player_id, op_player_id);
     println!();
 
-    println!("{}", game_api.get_game_state(game_id.clone(), my_player_id.clone()).await?);
-
-    // This is kind of lame for flow control. Oh well. :P
+    // This is kind of lame for flow control and printing. Oh well. :P
     let mut first_loop = true;
+    let game_state = game_api.get_game_state(game_id.clone(), my_player_id.clone()).await?;
+    if will_way_on_first_loop(&game_state) {
+        println!("{}", game_state);
+        println!("-- {}'s turn --", op_player_id);
+        println!();
+        println!("Waiting...");
+    }
 
     // Until end of game:
     // 1. Wait for op turn
@@ -85,8 +90,6 @@ pub async fn execute_game_loop(
             println!("-- {}'s turn --", op_player_id);
             println!();
             println!("Waiting...");
-        } else {
-            first_loop = false;
         }
         let game_state = wait_for_my_turn(
             &mut game_api,
@@ -121,6 +124,10 @@ pub async fn execute_game_loop(
         if check_is_game_over_and_print_outcome(&game_state) {
             break;
         }
+
+        if first_loop {
+            first_loop = false;
+        }
     }
 
     println!("Thanks for playing! Goodbye.");
@@ -145,6 +152,16 @@ async fn wait_for_my_turn(
         }
 
         return Ok(game_state);
+    }
+}
+
+fn will_way_on_first_loop(game_state: &GameState) -> bool {
+    // If it's not our turn, we will wait on the first loop
+    if let GameStatus::InProgress(is_my_turn) = game_state.status() {
+        !*is_my_turn
+    } else {
+        // This should never happen.
+        panic!("BUG: Game just started, but isn't in progress.");
     }
 }
 
