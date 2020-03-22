@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "src/crates/backend-engine",
   "src/crates/bin-client",
   "src/crates/bin-server",
   "src/crates/client-engine",

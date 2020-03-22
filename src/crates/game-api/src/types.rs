@@ -3,6 +3,7 @@ use std::fmt::{Debug, Formatter};
 use std::fmt;
 use std::convert::TryFrom;
 
+#[derive(Debug)]
 pub struct GameMetadata {
     game_id: String,
     host_player_id: String,
@@ -282,6 +283,7 @@ impl From<CardValue> for u32 {
     }
 }
 
+#[derive(Debug)]
 pub struct Play {
     game_id: String,
     player_id: String,

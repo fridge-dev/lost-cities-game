@@ -6,23 +6,22 @@ use std::sync::{Mutex, PoisonError};
 use tonic::codegen::Arc;
 use futures::executor::block_on;
 use crate::backend;
-use crate::backend::backend_error::{BackendGameError2, Cause};
+use backend_engine::backend_error::{BackendGameError, Cause};
 use std::convert::TryInto;
-use game_api::types::GameMetadata;
+use game_api::types::{GameMetadata, Play};
 use chrono::Utc;
+use crate::backend::channels::Slots;
+use backend_engine::task::backend_task_client::BackendTaskClient;
 
 /// Backend server is the entry point which will implement the gRPC server type.
 pub struct LostCitiesBackendServer {
-    // Mutex needed for interior mutability because I want a working, multi-tasked prototype for now.
-    // The multi-task impl runs on a single, blocking thread, so yeah, it's not great.
-    // I'll change the GameApi to be backed by a mpsc task model with oneshot callbacks.
-    game_api: Arc<Mutex<dyn GameApi2<BackendGameError2> + Send>>,
+    game_api_slots: Slots<BackendTaskClient>,
 }
 
 impl LostCitiesBackendServer {
     pub fn new() -> Self {
         LostCitiesBackendServer {
-            game_api: backend::channels::new_backend_game_api()
+            game_api_slots: backend::channels::start_backend()
         }
     }
 }
@@ -36,6 +35,8 @@ impl ProtoLostCities for LostCitiesBackendServer {
 
         let player_id = req.try_into()?;
 
+        self.game_api_slots
+            .get()
         let game_id = {
             match self.game_api.lock() {
                 // TODO change `block_on` to use `.await` with channels
@@ -55,13 +56,10 @@ impl ProtoLostCities for LostCitiesBackendServer {
 
         let (game_id, player_id) = req.try_into()?;
 
-        let _ = {
-            match self.game_api.lock() {
-                // TODO change `block_on` to use `.await` with channels
-                Ok(mut api) => block_on(api.join_game(game_id, player_id)),
-                Err(e) => Err(convert_lock_error(e)),
-            }
-        }?;
+        let _ = self.game_api_slots
+            .get(game_id)
+            .join_game(game_id, player_id)
+            .await?;
 
         let reply = ProtoJoinGameReply {};
         println!("{} - [WIRE] {:?}", Utc::now(), reply);
@@ -74,13 +72,9 @@ impl ProtoLostCities for LostCitiesBackendServer {
 
         let (game_id, player_id) = req.try_into()?;
 
-        let game_state = {
-            match self.game_api.lock() {
-                // TODO change `block_on` to use `.await` with channels
-                Ok(mut api) => block_on(api.get_game_state(game_id, player_id)),
-                Err(e) => Err(convert_lock_error(e)),
-            }
-        }?;
+        let game_state = self.game_api_slots
+            .get(game_id)
+            .get_game_state(game_id, player_id).await?;
 
         let reply = game_state.into();
         println!("{} - [WIRE] {:?}", Utc::now(), reply);
@@ -91,15 +85,12 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let req = request.into_inner();
         println!("{} - [WIRE] {:?}", Utc::now(), req);
 
-        let play = req.try_into()?;
+        let play: Play = req.try_into()?;
 
-        let _ = {
-            match self.game_api.lock() {
-                // TODO change `block_on` to use `.await` with channels
-                Ok(mut api) => block_on(api.play_card(play)),
-                Err(e) => Err(convert_lock_error(e)),
-            }
-        }?;
+        let _ = self.game_api_slots
+            .get(play.game_id())
+            .play_card(play)
+            .await?;
 
         let reply = ProtoPlayCardReply {};
         println!("{} - [WIRE] {:?}", Utc::now(), reply);
@@ -112,13 +103,10 @@ impl ProtoLostCities for LostCitiesBackendServer {
 
         let game_id = req.try_into()?;
 
-        let game_metadata = {
-            match self.game_api.lock() {
-                // TODO change `block_on` to use `.await` with channels
-                Ok(mut api) => block_on(api.describe_game(game_id)),
-                Err(e) => Err(convert_lock_error(e)),
-            }
-        }?;
+        let game_metadata = self.game_api_slots
+            .get(&game_id)
+            .describe_game(game_id)
+            .await?;
 
         let reply = ProtoDescribeGameReply {
             metadata: Some(ProtoGameMetadata::from(game_metadata))
