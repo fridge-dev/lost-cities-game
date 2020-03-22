@@ -12,7 +12,7 @@ pub struct StorageGameMetadata {
     game_id: String,
     p1_id: String,
     p2_id: Option<String>,
-    game_status: GameStatus,
+    game_status: StorageGameStatus,
 }
 
 impl StorageGameMetadata {
@@ -20,7 +20,7 @@ impl StorageGameMetadata {
         game_id: String,
         p1_id: String,
         p2_id: Option<String>,
-        game_status: GameStatus
+        game_status: StorageGameStatus
     ) -> Self {
         StorageGameMetadata {
             game_id,
@@ -46,23 +46,22 @@ impl StorageGameMetadata {
         self.p2_id.as_ref().expect(MISSING_P2_ID_MSG)
     }
 
-    pub fn game_status(&self) -> &GameStatus {
+    pub fn game_status(&self) -> &StorageGameStatus {
         &self.game_status
     }
 
-    pub fn set_p2_id(&mut self, p2_id: String) -> Result<(), StorageError> {
-        match &self.p2_id {
-            Some(_existing_p2_id) => Err(StorageError::IllegalModification),
-            None => {
-                self.p2_id = Some(p2_id);
-                Ok(())
-            }
-        }
+    pub fn creation_time_ms(&self) -> u64 {
+        // TODO persist/return actual creation time
+        1
+    }
+
+    pub fn set_p2_id(&mut self, p2_id: String) {
+        self.p2_id.replace(p2_id);
     }
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
-pub enum GameStatus {
+pub enum StorageGameStatus {
     InProgress, // "In progress" could also mean host is waiting for a guest
     Completed,
 }

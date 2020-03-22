@@ -1,12 +1,12 @@
 #![allow(unused_variables)] // TODO remove
 use game_api::api::GameApi2;
-use game_api::types::{GameState, Play, Card, GameBoard, CardTarget, CardColor, CardValue, DrawPile, GameMetadata};
+use game_api::types::{GameState, Play, Card, GameBoard, CardTarget, CardColor, CardValue, DrawPile, GameMetadata, GameStatus, GameResult};
 use rules::deck::DeckFactory;
 use rules::{plays, scoring, endgame};
 use std::collections::HashMap;
 use storage::local_storage::LocalStore;
 use storage::storage_api::GameStore;
-use storage::storage_types::{StorageGameMetadata, GameStatus, StorageError, StorageGameState};
+use storage::storage_types::{StorageGameMetadata, StorageGameStatus, StorageError, StorageGameState};
 use crate::backend::backend_error::{BackendGameError2, Cause, Reason};
 use std::sync::Arc;
 
@@ -24,16 +24,13 @@ impl StorageBackedGameApi {
     }
 
     fn update_game_metadata(&mut self, game_id: &str, p2_id: String) -> Result<(), BackendGameError2> {
-        let mut metadata = self.storage.load_game_metadata(game_id)
-            .map_err(|e| match e {
-                StorageError::NotFound => BackendGameError2::NotFound("Game metadata"),
-                _ => BackendGameError2::Internal(Cause::Storage("Failed to load game metadata", Arc::new(e)))
-            })?;
-        metadata.set_p2_id(p2_id)
-            .map_err(|e| match e {
-                StorageError::IllegalModification => BackendGameError2::GameAlreadyMatched,
-                _ => BackendGameError2::Internal(Cause::Storage("Failed to mutate game metadata", Arc::new(e))),
-            })?;
+        let mut metadata = self.load_game_metadata(game_id)?;
+
+        if let Some(existing_p2_id) = metadata.p2_id_opt() {
+            return Err(BackendGameError2::GameAlreadyMatched(existing_p2_id.clone()));
+        }
+        metadata.set_p2_id(p2_id);
+
         self.storage.update_game_metadata(metadata)
             .map_err(|e| match e {
                 StorageError::NotFound => BackendGameError2::NotFound("Game metadata"),
@@ -67,11 +64,7 @@ impl StorageBackedGameApi {
     }
 
     fn load_game(&self, game_id: &str, player_id: &str) -> Result<(StorageGameState, bool), BackendGameError2> {
-        let metadata = self.storage.load_game_metadata(game_id)
-            .map_err(|e| match e {
-                StorageError::NotFound => BackendGameError2::NotFound("Game metadata"),
-                _ => BackendGameError2::Internal(Cause::Storage("Failed to load game", Arc::new(e)))
-            })?;
+        let metadata = self.load_game_metadata(game_id)?;
 
         let is_player_1 = if player_id == metadata.p1_id() {
             true
@@ -89,6 +82,14 @@ impl StorageBackedGameApi {
 
         Ok((storage_game_state, is_player_1))
     }
+
+    fn load_game_metadata(&self, game_id: &str) -> Result<StorageGameMetadata, BackendGameError2> {
+        self.storage.load_game_metadata(game_id)
+            .map_err(|e| match e {
+                StorageError::NotFound => BackendGameError2::NotFound("Game metadata"),
+                _ => BackendGameError2::Internal(Cause::Storage("Failed to load game", Arc::new(e)))
+            })
+    }
 }
 
 #[async_trait::async_trait]
@@ -99,7 +100,7 @@ impl GameApi2<BackendGameError2> for StorageBackedGameApi {
             game_id.clone(),
             p1_id,
             None,
-            GameStatus::InProgress,
+            StorageGameStatus::InProgress,
         ));
 
         match storage_result {
@@ -115,7 +116,30 @@ impl GameApi2<BackendGameError2> for StorageBackedGameApi {
     }
 
     async fn describe_game(&mut self, game_id: String) -> Result<GameMetadata, BackendGameError2> {
-        unimplemented!()
+        self.load_game_metadata(&game_id)
+            .map(|storage_game_metadata| {
+                if let Some(p2_id) = storage_game_metadata.p2_id_opt() {
+                    let status = match storage_game_metadata.game_status() {
+                        // TODO Use the actual data. The contained data in the GameStatus
+                        // is stored in GameState, not Metadata, so just put something random here.
+                        StorageGameStatus::InProgress => GameStatus::InProgress(false),
+                        StorageGameStatus::Completed => GameStatus::Complete(GameResult::Draw),
+                    };
+                    GameMetadata::new_matched(
+                        game_id,
+                        storage_game_metadata.p1_id().to_owned(),
+                        storage_game_metadata.creation_time_ms(),
+                        p2_id.clone(),
+                        status
+                    )
+                } else {
+                    GameMetadata::new_unmatched(
+                        game_id,
+                        storage_game_metadata.p1_id().to_owned(),
+                        storage_game_metadata.creation_time_ms(),
+                    )
+                }
+            })
     }
 
     async fn query_unmatched_games(&mut self, player_id: String) -> Result<Vec<GameMetadata>, BackendGameError2> {

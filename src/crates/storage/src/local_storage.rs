@@ -84,7 +84,7 @@ impl GameStore for LocalStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::storage_types::GameStatus;
+    use crate::storage_types::StorageGameStatus;
 
     #[test]
     fn create_load_game_metadata() {
@@ -94,7 +94,7 @@ mod tests {
             "game-123".to_owned(),
             "p1".to_owned(),
             None,
-            GameStatus::InProgress
+            StorageGameStatus::InProgress
         );
 
         assert_eq!(
@@ -123,7 +123,7 @@ mod tests {
             "game-123".to_owned(),
             "p1".to_owned(),
             None,
-            GameStatus::InProgress
+            StorageGameStatus::InProgress
         );
 
         assert_eq!(
@@ -135,9 +135,7 @@ mod tests {
             ()
         );
         let mut metadata2 = metadata.clone();
-        if let Err(e) = metadata2.set_p2_id("p2p2".to_owned()) {
-            panic!("set_p2_id failed {}", e);
-        }
+        metadata2.set_p2_id("p2p2".to_owned());
         assert_eq!(
             local_store.update_game_metadata(metadata2.clone()).ok().unwrap(),
             ()

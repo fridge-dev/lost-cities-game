@@ -8,7 +8,7 @@ use tonic::{Status, Code};
 pub enum BackendGameError2 {
     Internal(Cause),
     NotFound(&'static str),
-    GameAlreadyMatched,
+    GameAlreadyMatched(/* Player2 ID */ String),
     InvalidPlay(Reason),
 }
 
@@ -19,7 +19,7 @@ impl Display for BackendGameError2 {
         match self {
             BackendGameError2::NotFound(entity) => f.write_str(&format!("{} not found!", entity)),
             BackendGameError2::Internal(cause) => f.write_str(&format!("Unexpected error: {:?}", cause)),
-            BackendGameError2::GameAlreadyMatched => f.write_str("No room for u."),
+            BackendGameError2::GameAlreadyMatched(p2_id) => f.write_str(&format!("No room for u. Player {} already joined.", p2_id)),
             BackendGameError2::InvalidPlay(reason) => f.write_str(&format!("You cannot make that play: {:?}", reason)),
         }
     }
@@ -29,7 +29,7 @@ impl From<BackendGameError2> for Status {
     fn from(game_error: BackendGameError2) -> Self {
         match game_error {
             BackendGameError2::NotFound(resource) => Status::new(Code::NotFound, format!("Resource {} not found.", resource)),
-            BackendGameError2::GameAlreadyMatched => Status::new(Code::AlreadyExists, format!("The game you attempted to join is full.")),
+            BackendGameError2::GameAlreadyMatched(p2_id) => Status::new(Code::AlreadyExists, format!("The game you attempted to join is full. {} already joined the game.", p2_id)),
             BackendGameError2::InvalidPlay(reason) => Status::new(Code::InvalidArgument, format!("Can't play card. {}", reason)),
             BackendGameError2::Internal(cause) => {
                 println!("ERROR: Internal failure caused by '{:?}'", cause);
