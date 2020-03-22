@@ -2,39 +2,24 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::fmt;
 use std::sync::Arc;
-use tonic::{Status, Code};
 
 #[derive(Debug)]
-pub enum BackendGameError2 {
+pub enum BackendGameError {
     Internal(Cause),
     NotFound(&'static str),
     GameAlreadyMatched(/* Player2 ID */ String),
     InvalidPlay(Reason),
 }
 
-impl Error for BackendGameError2 {}
+impl Error for BackendGameError {}
 
-impl Display for BackendGameError2 {
+impl Display for BackendGameError {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            BackendGameError2::NotFound(entity) => f.write_str(&format!("{} not found!", entity)),
-            BackendGameError2::Internal(cause) => f.write_str(&format!("Unexpected error: {:?}", cause)),
-            BackendGameError2::GameAlreadyMatched(p2_id) => f.write_str(&format!("No room for u. Player {} already joined.", p2_id)),
-            BackendGameError2::InvalidPlay(reason) => f.write_str(&format!("You cannot make that play: {:?}", reason)),
-        }
-    }
-}
-
-impl From<BackendGameError2> for Status {
-    fn from(game_error: BackendGameError2) -> Self {
-        match game_error {
-            BackendGameError2::NotFound(resource) => Status::new(Code::NotFound, format!("Resource {} not found.", resource)),
-            BackendGameError2::GameAlreadyMatched(p2_id) => Status::new(Code::AlreadyExists, format!("The game you attempted to join is full. {} already joined the game.", p2_id)),
-            BackendGameError2::InvalidPlay(reason) => Status::new(Code::InvalidArgument, format!("Can't play card. {}", reason)),
-            BackendGameError2::Internal(cause) => {
-                println!("ERROR: Internal failure caused by '{:?}'", cause);
-                Status::new(Code::Internal, format!("Internal server failure"))
-            },
+            BackendGameError::NotFound(entity) => f.write_str(&format!("{} not found!", entity)),
+            BackendGameError::Internal(cause) => f.write_str(&format!("Unexpected error: {:?}", cause)),
+            BackendGameError::GameAlreadyMatched(p2_id) => f.write_str(&format!("No room for u. Player {} already joined.", p2_id)),
+            BackendGameError::InvalidPlay(reason) => f.write_str(&format!("You cannot make that play: {:?}", reason)),
         }
     }
 }
