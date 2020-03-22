@@ -4,10 +4,6 @@ use crate::rand_util::PrngRand;
 use rand_core::RngCore;
 use rand::seq::SliceRandom;
 
-pub fn new_shuffled_deck() -> Vec<Card> {
-    return Vec::new();
-}
-
 pub struct DeckFactory {
     unshuffled_deck: Vec<Card>,
 }
@@ -50,13 +46,19 @@ impl DeckFactory {
         }
     }
 
-    pub fn new_shuffled_deck(&self) -> Vec<Card> {
-        self.new_shuffled_deck_with_seed(thread_rng().next_u64())
+    pub fn new_shuffled_deck(&self) -> (Vec<Card>, u64) {
+        let seed = thread_rng().next_u64();
+        (self.new_shuffled_deck_with_seed(seed), seed)
     }
 
     fn new_shuffled_deck_with_seed(&self, seed_for_random: u64) -> Vec<Card> {
         let mut deck = self.unshuffled_deck.clone();
         let prng = &mut PrngRand::new(seed_for_random);
+        // Let's get wild
+        deck.shuffle(prng);
+        deck.reverse();
+        deck.shuffle(prng);
+        deck.reverse();
         deck.shuffle(prng);
 
         deck
@@ -70,10 +72,11 @@ mod tests {
     #[test]
     fn different_seeds_produce_different_decks() {
         let deck_factory = DeckFactory::new();
-        let deck2 = deck_factory.new_shuffled_deck();
-        let deck1 = deck_factory.new_shuffled_deck();
+        let (deck2, seed2)  = deck_factory.new_shuffled_deck();
+        let (deck1, seed1)  = deck_factory.new_shuffled_deck();
 
         assert_ne!(deck1, deck2);
+        assert_ne!(seed1, seed2);
     }
 
     #[test]

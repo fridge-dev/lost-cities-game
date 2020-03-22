@@ -38,7 +38,8 @@ impl StorageBackedGameApi {
     }
 
     fn create_initial_game_state(&mut self, game_id: String) -> Result<(), BackendGameError2> {
-        let mut deck = self.deck_factory.new_shuffled_deck();
+        let (mut deck, seed) = self.deck_factory.new_shuffled_deck();
+        println!("INFO: Seeding RNG with '{}' to shuffle deck for game '{}'", seed, game_id);
 
         let mut p1_hand: Vec<Card> = Vec::with_capacity(8);
         let mut p2_hand: Vec<Card> = Vec::with_capacity(8);
