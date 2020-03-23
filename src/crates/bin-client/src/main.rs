@@ -56,7 +56,7 @@ async fn execute_single_game(player_id: String) -> Result<(), Box<dyn Error>> {
             game_id
         },
         MainMenuAction::ReadRules => {
-            println!("Sorry, I have written this part yet.");
+            println!("I haven't added this to the game yet. For now, go read https://github.com/fridge-dev/lost-cities-game/blob/master/rules.md");
             return Ok(());
         },
     };

@@ -16,6 +16,7 @@ r => [r]ead the rules\n\
 ";
 
 pub fn handle_main_menu() -> MainMenuAction {
+    println!();
     println!("Welcome to the Lost Cities game!");
 
     loop {
