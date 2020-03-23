@@ -1,17 +1,28 @@
-use std::error::Error;
 use client_engine::client_game_api::provider;
 use bin_client::cli::smart_cli;
-use bin_client::screens::game;
-use bin_client::screens::main_menu::MainMenuAction;
 use bin_client::screens::main_menu;
+use std::{env, process};
+
+const DEFAULT_HOSTNAME: &str = "localhost";
 
 #[tokio::main]
 async fn main() {
+    let (program_name, hostname) = get_cli_args();
 
+    // Connect to server and run game
+    let mut game_api = provider::new_frontend_game_api(hostname)
+        .await
+        .unwrap_or_else(|e| {
+            eprintln!("ERROR: {:?}", e);
+            eprintln!();
+            eprintln!("Failed to connect to the server. Are you sure you entered the right hostname? Is the server up?");
+            print_usage_exit(&program_name);
+        });
+
+    // Run game
     let player_id = smart_cli::prompt_for_player_id().expect("This should never fail.");
-
     loop {
-        let result = execute_single_game(player_id.clone()).await;
+        let result = main_menu::handle_menu(&mut game_api, player_id.clone()).await;
         if let Err(error) = result {
             println!("UNHANDLED ERROR: Debug='{:?}', Display='{}'", error, error);
             println!();
@@ -20,48 +31,29 @@ async fn main() {
     }
 }
 
-/// Layer of indirection to handle errors (and so we can easily use `?` syntax).
-///
-/// This is called once-per-game instance.
-async fn execute_single_game(player_id: String) -> Result<(), Box<dyn Error>> {
+fn get_cli_args() -> (String, String) {
+    let mut cli_args = env::args();
 
-    let mut game_api = provider::new_frontend_game_api().await;
-    let action = main_menu::handle_main_menu();
+    // Arg 0
+    let program_name = cli_args.next().unwrap_or_else(|| {
+        eprintln!("Program name is somehow missing? You should never see this.");
+        process::exit(1);
+    });
 
-    let game_id = match action {
-        MainMenuAction::HostGame => {
-            // Create game
-            let game_id = game_api.host_game(player_id.clone()).await?;
-            println!("Created Game ID = '{}'", game_id);
+    // Arg 1
+    let hostname = cli_args.next()
+        .unwrap_or_else(|| {
+            println!("Using default hostname '{}'", DEFAULT_HOSTNAME);
+            DEFAULT_HOSTNAME.to_owned()
+        });
 
-            // Poll for guest joining game
-            println!();
-            println!("Waiting for player to join...");
-            game::wait_for_game_to_fill(&mut game_api, game_id.clone()).await?;
+    (program_name, hostname)
+}
 
-            game_id
-        },
-        MainMenuAction::JoinGame(game_id) => {
-            // Get game status
-            let game_metadata = game_api.describe_game(game_id.clone()).await?;
-            if let Some((player2_id, _status)) = game_metadata.matched_data() {
-                println!("Game is full: Host='{}', Guest='{}'", game_metadata.host_player_id(), player2_id);
-                return Ok(());
-            }
-            println!("This game is hosted by '{}'. Joining game...", game_metadata.host_player_id());
-
-            // Join game
-            game_api.join_game(game_id.clone(), player_id.clone()).await?;
-
-            game_id
-        },
-        MainMenuAction::ReadRules => {
-            println!("I haven't added this to the game yet. For now, go read https://github.com/fridge-dev/lost-cities-game/blob/master/rules.md");
-            return Ok(());
-        },
-    };
-
-    game::execute_game_loop(game_api, game_id, player_id).await?;
-
-    Ok(())
+fn print_usage_exit(program_name: &str) -> ! {
+    eprintln!();
+    eprintln!("Usage:  \t{} <server hostname>", program_name);
+    eprintln!("Example:\t{} example-hostname.com", program_name);
+    eprintln!();
+    process::exit(1);
 }

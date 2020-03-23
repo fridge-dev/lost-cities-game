@@ -2,18 +2,19 @@ use game_api::api::GameApi2;
 use game_api::types::{GameState, Play, GameMetadata};
 use std::borrow::Cow;
 use std::convert::TryFrom;
-use tonic::transport::{Channel, Endpoint, Error};
+use tonic::transport::{Channel, Endpoint};
 use crate::wire_api::proto_lost_cities::{ProtoHostGameReq, ProtoJoinGameReq, ProtoGetGameStateReq, ProtoPlayCardReq, ProtoDescribeGameReq, ProtoQueryGamesReq, ProtoGameStatus, ProtoGameMetadata, ProtoGetMatchableGamesReq};
 use crate::wire_api::proto_lost_cities::proto_lost_cities_client::ProtoLostCitiesClient;
 use crate::client_game_api::error::ClientGameError;
+use std::error::Error;
 
 pub struct GameClient {
     inner_client: ProtoLostCitiesClient<Channel>,
 }
 
 impl GameClient {
-    pub async fn new() -> Result<Self, Error> {
-        let endpoint = Endpoint::new("http://localhost:50051")?;
+    pub async fn new(hostname: String) -> Result<Self, Box<dyn Error>> {
+        let endpoint = Endpoint::from_shared(format!("http://{}:50051", hostname))?;
 
         let connection = endpoint.connect().await?;
 

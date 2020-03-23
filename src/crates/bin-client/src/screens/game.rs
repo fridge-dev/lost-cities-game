@@ -31,7 +31,7 @@ pub async fn wait_for_game_to_fill(
 ///
 /// Return Err(_) - an unhandled error
 pub async fn execute_game_loop(
-    mut game_api: Box<dyn GameApi2<ClientGameError>>,
+    mut game_api: &mut Box<dyn GameApi2<ClientGameError>>,
     game_id: String,
     my_player_id: String
 ) -> Result<(), Box<dyn Error>> {
