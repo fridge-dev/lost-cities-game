@@ -7,15 +7,18 @@ use tonic::{Code, Status};
 // ============================= Request converters ===================================
 // ============================= Proto -> App =========================================
 
-impl TryFrom<ProtoHostGameReq> for String {
+impl TryFrom<ProtoHostGameReq> for (String, String) {
     type Error = Status;
 
     fn try_from(req: ProtoHostGameReq) -> Result<Self, Self::Error> {
+        if req.game_id.is_empty() {
+            return Err(Status::new(Code::InvalidArgument, "Missing GameId"));
+        }
         if req.player_id.is_empty() {
             return Err(Status::new(Code::InvalidArgument, "Missing PlayedId"));
         }
 
-        Ok(req.player_id)
+        Ok((req.game_id, req.player_id))
     }
 }
 
@@ -301,13 +304,11 @@ impl From<GameStatus> for ProtoGameStatus {
                 } else {
                     ProtoGameStatus::OpponentTurn
                 }
-            },
-            GameStatus::Complete(result) => {
-                match result {
-                    GameResult::Win => ProtoGameStatus::EndWin,
-                    GameResult::Lose => ProtoGameStatus::EndLose,
-                    GameResult::Draw => ProtoGameStatus::EndDraw,
-                }
+            }
+            GameStatus::Complete(result) => match result {
+                GameResult::Win => ProtoGameStatus::EndWin,
+                GameResult::Lose => ProtoGameStatus::EndLose,
+                GameResult::Draw => ProtoGameStatus::EndDraw,
             },
         }
     }

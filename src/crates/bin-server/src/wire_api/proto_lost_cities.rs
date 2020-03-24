@@ -8,13 +8,13 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProtoHostGameReq {
     #[prost(string, tag = "1")]
+    pub game_id: std::string::String,
+    #[prost(string, tag = "2")]
     pub player_id: std::string::String,
 }
+/// Nothing
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ProtoHostGameReply {
-    #[prost(string, tag = "1")]
-    pub game_id: std::string::String,
-}
+pub struct ProtoHostGameReply {}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProtoJoinGameReq {
     #[prost(string, tag = "1")]

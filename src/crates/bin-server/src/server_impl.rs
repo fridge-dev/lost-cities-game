@@ -34,17 +34,17 @@ impl ProtoLostCities for LostCitiesBackendServer {
         let req = request.into_inner();
         println!("{} - [WIRE] {:?}", Utc::now(), req);
 
-        let player_id = req.try_into()?;
+        let (game_id, player_id) = req.try_into()?;
 
-        let game_id = {
+        let _ = {
             match self.game_api.lock() {
                 // TODO change `block_on` to use `.await` with channels
-                Ok(mut api) => block_on(api.host_game(player_id)),
+                Ok(mut api) => block_on(api.host_game(game_id, player_id)),
                 Err(e) => Err(convert_lock_error(e)),
             }
         }?;
 
-        let reply = ProtoHostGameReply { game_id };
+        let reply = ProtoHostGameReply {};
         println!("{} - [WIRE] {:?}", Utc::now(), reply);
         Ok(Response::new(reply))
     }

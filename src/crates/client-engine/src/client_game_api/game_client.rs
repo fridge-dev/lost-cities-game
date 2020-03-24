@@ -45,15 +45,16 @@ impl GameClient {
 
 #[async_trait::async_trait]
 impl GameApi2<ClientGameError> for GameClient {
-    async fn host_game(&mut self, p1_id: String) -> Result<String, ClientGameError> {
+    async fn host_game(&mut self, game_id: String, p1_id: String) -> Result<(), ClientGameError> {
         let request = tonic::Request::new(ProtoHostGameReq {
+            game_id,
             player_id: p1_id
         });
 
         self.inner_client.host_game(request)
             .await
             .map_err(|e| handle_error(e))
-            .map(|response| response.into_inner().game_id)
+            .map(|_response| ())
     }
 
     async fn join_game(&mut self, game_id: String, p2_id: String) -> Result<(), ClientGameError> {

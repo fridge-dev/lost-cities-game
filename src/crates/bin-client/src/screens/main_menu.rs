@@ -17,7 +17,8 @@ pub async fn handle_menu(
     let game_id = match prompt_loop() {
         MainMenuAction::HostGame => {
             // Create game
-            let game_id = game_api.host_game(player_id.clone()).await?;
+            let game_id = create_game_id();
+            game_api.host_game(game_id.clone(), player_id.clone()).await?;
             println!("Created Game ID = '{}'", game_id);
 
             // Poll for guest joining game
@@ -50,6 +51,11 @@ pub async fn handle_menu(
     game::execute_game_loop(&mut game_api, game_id, player_id).await?;
 
     Ok(())
+}
+
+fn create_game_id() -> String {
+    // random hex string
+    format!("{:x}", rand::random::<u128>())
 }
 
 enum MainMenuAction {

@@ -120,27 +120,32 @@ impl TryFrom<ProtoPlayHistory> for HashMap<CardColor, Vec<CardValue>> {
         // Probably a better way to do this. But the '?' operator inside a closure which also
         // has to account for Some/None makes other method signatures ugly and hard to understand.
         for value_u32 in proto_play_history.red {
-            play_history.entry(CardColor::Red)
+            play_history
+                .entry(CardColor::Red)
                 .or_insert_with(|| Vec::new())
                 .push(card_value_from_proto(value_u32)?);
         }
         for value_u32 in proto_play_history.blue {
-            play_history.entry(CardColor::Blue)
+            play_history
+                .entry(CardColor::Blue)
                 .or_insert_with(|| Vec::new())
                 .push(card_value_from_proto(value_u32)?);
         }
         for value_u32 in proto_play_history.green {
-            play_history.entry(CardColor::Green)
+            play_history
+                .entry(CardColor::Green)
                 .or_insert_with(|| Vec::new())
                 .push(card_value_from_proto(value_u32)?);
         }
         for value_u32 in proto_play_history.white {
-            play_history.entry(CardColor::White)
+            play_history
+                .entry(CardColor::White)
                 .or_insert_with(|| Vec::new())
                 .push(card_value_from_proto(value_u32)?);
         }
         for value_u32 in proto_play_history.yellow {
-            play_history.entry(CardColor::Yellow)
+            play_history
+                .entry(CardColor::Yellow)
                 .or_insert_with(|| Vec::new())
                 .push(card_value_from_proto(value_u32)?);
         }

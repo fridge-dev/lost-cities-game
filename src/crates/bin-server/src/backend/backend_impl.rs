@@ -94,20 +94,16 @@ impl StorageBackedGameApi {
 
 #[async_trait::async_trait]
 impl GameApi2<BackendGameError2> for StorageBackedGameApi {
-    async fn host_game(&mut self, p1_id: String) -> Result<String, BackendGameError2> {
-        let game_id = create_game_id();
-        let storage_result = self.storage.create_game_metadata(StorageGameMetadata::new(
-            game_id.clone(),
+    async fn host_game(&mut self, game_id: String, p1_id: String) -> Result<(), BackendGameError2> {
+        let storage_game_metadata = StorageGameMetadata::new(
+            game_id,
             p1_id,
             None,
             StorageGameStatus::InProgress,
-        ));
+        );
 
-        match storage_result {
-            Ok(_) => Ok(game_id),
-            // This should never fail.
-            Err(e) => Err(BackendGameError2::Internal(Cause::Storage("Failed to list game as hosted.", Arc::new(e))))
-        }
+        self.storage.create_game_metadata(storage_game_metadata)
+            .map_err(|e| BackendGameError2::Internal(Cause::Storage("Failed to list game as hosted.", Arc::new(e))))
     }
 
     async fn join_game(&mut self, game_id: String, p2_id: String) -> Result<(), BackendGameError2> {
@@ -177,11 +173,6 @@ impl GameApi2<BackendGameError2> for StorageBackedGameApi {
 }
 
 // ================ private, static (stateless) methods related to StorageBackedGameApi =================
-
-fn create_game_id() -> String {
-    // random hex string
-    format!("{:x}", rand::random::<u128>())
-}
 
 fn is_first_turn_p1() -> bool {
     rand::random()

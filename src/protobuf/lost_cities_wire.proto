@@ -25,11 +25,12 @@ service ProtoLostCities {
 // to understand which types are generated.
 
 message ProtoHostGameReq {
-    string player_id = 1;
+    string game_id = 1;
+    string player_id = 2;
 }
 
 message ProtoHostGameReply {
-    string game_id = 1;
+    // Nothing
 }
 
 message ProtoJoinGameReq {

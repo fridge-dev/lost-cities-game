@@ -11,7 +11,7 @@ pub trait GameApi2<E: Error + Send + Sync + 'static> {
 
     /// Create a new game with only the host player present.
     /// Returns game_id used for all future queries
-    async fn host_game(&mut self, p1_id: String) -> Result<String, E>;
+    async fn host_game(&mut self, game_id: String, p1_id: String) -> Result<(), E>;
 
     /// Player 2 joins the game.
     async fn join_game(&mut self, game_id: String, p2_id: String) -> Result<(), E>;
