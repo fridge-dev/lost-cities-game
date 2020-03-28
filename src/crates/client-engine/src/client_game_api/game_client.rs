@@ -13,8 +13,10 @@ pub struct GameClient {
 }
 
 impl GameClient {
-    pub async fn new(hostname: String) -> Result<Self, Box<dyn Error>> {
-        let endpoint = Endpoint::from_shared(format!("http://{}:50051", hostname))?;
+    pub async fn new(hostname: String, port: u16) -> Result<Self, Box<dyn Error>> {
+        let url = format!("http://{}:{}", hostname, port);
+        println!("Connecting to {} ...", url);
+        let endpoint = Endpoint::from_shared(url)?;
 
         let connection = endpoint.connect().await?;
 

@@ -4,13 +4,14 @@ use bin_client::screens::main_menu;
 use std::{env, process};
 
 const DEFAULT_HOSTNAME: &str = "localhost";
+const DEFAULT_PORT: u16 = 8051;
 
 #[tokio::main]
 async fn main() {
-    let (program_name, hostname) = get_cli_args();
+    let (program_name, hostname, port) = get_cli_args();
 
     // Connect to server and run game
-    let mut game_api = provider::new_frontend_game_api(hostname)
+    let mut game_api = provider::new_frontend_game_api(hostname, port)
         .await
         .unwrap_or_else(|e| {
             eprintln!("ERROR: {:?}", e);
@@ -31,7 +32,7 @@ async fn main() {
     }
 }
 
-fn get_cli_args() -> (String, String) {
+fn get_cli_args() -> (String, String, u16) {
     let mut cli_args = env::args();
 
     // Arg 0
@@ -47,13 +48,23 @@ fn get_cli_args() -> (String, String) {
             DEFAULT_HOSTNAME.to_owned()
         });
 
-    (program_name, hostname)
+    // Arg 2
+    let port = cli_args.next()
+        .map(|port_str| port_str.parse().unwrap_or_else(|_| {
+            print_usage_exit(&program_name);
+        }))
+        .unwrap_or_else(|| {
+            println!("Using default port '{}'", DEFAULT_PORT);
+            DEFAULT_PORT
+        });
+
+    (program_name, hostname, port)
 }
 
 fn print_usage_exit(program_name: &str) -> ! {
     eprintln!();
-    eprintln!("Usage:  \t{} <server hostname>", program_name);
-    eprintln!("Example:\t{} example-hostname.com", program_name);
+    eprintln!("Usage:  \t{} <server hostname> <port>", program_name);
+    eprintln!("Example:\t{} example-hostname.com 3000", program_name);
     eprintln!();
     process::exit(1);
 }

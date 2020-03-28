@@ -10,8 +10,9 @@ use std::error::Error;
 /// * https://stackoverflow.com/a/27570064
 /// * https://stackoverflow.com/questions/28621980/what-are-the-actual-runtime-performance-costs-of-dynamic-dispatch
 pub async fn new_frontend_game_api(
-    hostname: String
+    hostname: String,
+    port: u16,
 ) -> Result<Box<dyn GameApi2<ClientGameError>>, Box<dyn Error>> {
-    let client = GameClient::new(hostname).await?;
+    let client = GameClient::new(hostname, port).await?;
     Ok(Box::new(client))
 }
