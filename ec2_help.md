@@ -19,7 +19,7 @@ git clone https://github.com/fridge-dev/lost-cities-game
 
 ```sh
 source ~/.bash_profile
-cd lost-cities-game
+cd ~/lost-cities-game
 git pull --rebase
 cargo run --release --bin lost-cities-game-server
 ```

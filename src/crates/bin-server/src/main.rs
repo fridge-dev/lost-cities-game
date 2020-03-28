@@ -1,4 +1,4 @@
-use std::net::{SocketAddr, IpAddr, Ipv4Addr};
+use std::net::SocketAddr;
 use tonic::transport::Server;
 use bin_server::server_impl::LostCitiesBackendServer;
 use bin_server::wire_api::proto_lost_cities::proto_lost_cities_server::ProtoLostCitiesServer;
@@ -8,9 +8,11 @@ const DEFAULT_PORT: u16 = 8051;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let (_, port) = get_cli_args();
+
     let server_impl = LostCitiesBackendServer::new();
 
-    let addr: SocketAddr = "[::]:50051".parse()
+    let addr: SocketAddr = format!("[::]:{}", port).parse()
         .expect("This should never happen. It's a valid IP address, dammit.");
     println!("Going to listen on '{:?}'", addr);
 
