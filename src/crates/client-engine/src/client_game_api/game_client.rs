@@ -152,6 +152,7 @@ impl GameApi2<ClientGameError> for GameClient {
 }
 
 fn handle_error(status: tonic::Status) -> ClientGameError {
-    println!("WARN: Failed backend call: {:?}", status);
+    println!("WARN: Failed backend call: {:?} - {}", status.code(), status.message());
+    println!();
     ClientGameError::from(status)
 }

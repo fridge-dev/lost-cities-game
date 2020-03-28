@@ -26,7 +26,7 @@ impl IntoTonicStatus for BackendGameError {
                 println!("INFO: User can't play card for reason {}", reason);
                 Status::new(
                     Code::InvalidArgument,
-                    format!("Can't play card. {}", reason)
+                    format!("Can't play card. RULE: {}", reason)
                 )
             },
             BackendGameError::Internal(cause) => {

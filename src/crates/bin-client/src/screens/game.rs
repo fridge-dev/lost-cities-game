@@ -107,15 +107,12 @@ pub async fn execute_game_loop(
 
         // 3. My turn
         println!("-- {}'s turn --", my_player_id);
-        let (card, card_target, draw_pile) = get_next_play_from_cli(&game_state);
-
-        game_api.play_card(Play::new(
-            game_id.clone(),
-            my_player_id.clone(),
-            card.clone(),
-            card_target,
-            draw_pile,
-        )).await?;
+        turn_loop(
+            &mut game_api,
+            &game_id,
+            &my_player_id,
+            &game_state
+        ).await;
 
         // 4. End game check
         let game_state = game_api.get_game_state(game_id.clone(), my_player_id.clone()).await?;
@@ -132,6 +129,32 @@ pub async fn execute_game_loop(
 
     println!("Thanks for playing! Goodbye.");
     Ok(())
+}
+
+async fn turn_loop(
+    game_api: &mut Box<dyn GameApi2<ClientGameError>>,
+    game_id: &String,
+    my_player_id: &String,
+    game_state: &GameState
+) {
+    loop {
+        let (card, card_target, draw_pile) = get_next_play_from_cli(&game_state);
+        let play = Play::new(
+            game_id.clone(),
+            my_player_id.clone(),
+            card.clone(),
+            card_target,
+            draw_pile,
+        );
+
+        if let Err(e) = game_api.play_card(play).await {
+            println!("Server responded with error: '{}'. Please try your turn again.", e);
+            println!();
+            continue;
+        } else {
+            break;
+        }
+    }
 }
 
 async fn wait_for_my_turn(

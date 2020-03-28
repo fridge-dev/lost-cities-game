@@ -68,7 +68,8 @@ pub mod smart_cli {
     }
 
     pub fn prompt_confirm_play(card: &Card, target: &CardTarget, draw_pile: &DrawPile) -> PromptResult<bool> {
-        let cli_y_n = prompt_for_input(&format!("REVIEW: Play '{}' on '{:?}', then draw from '{:?}'. [y/n]", card, target, draw_pile));
+        let cli_y_n = prompt_for_input(&format!("Confirm: Play '{}' on '{:?}', then draw from '{:?}'. [y/n]", card, target, draw_pile));
+        println!();
 
         match cli_y_n.to_lowercase().as_str() {
             "y" => Ok(true),

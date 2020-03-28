@@ -8,10 +8,10 @@ ssh -o IdentitiesOnly=yes -i ./private-keys/firstattemptatgameserver20200327.pem
 ## Install
 
 ```sh
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source ~/.bash_profile
-sudo yum install git
-sudo yum install gcc gcc-c++ make
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh && \
+source ~/.bash_profile && \
+sudo yum install git && \
+sudo yum install gcc gcc-c++ make && \
 git clone https://github.com/fridge-dev/lost-cities-game
 ```
 
