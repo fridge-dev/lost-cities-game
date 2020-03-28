@@ -2,7 +2,7 @@
 
 ```sh
 HOSTNAME=ec2-54-189-144-219.us-west-2.compute.amazonaws.com
-ssh -o IdentitiesOnly=yes -i ./private-keys/firstattemptatgameserver20200327.pem ec2-user@$HOSTNAME
+ssh -o IdentitiesOnly=yes -i ~/.aws/private-keys/firstattemptatgameserver20200327.pem ec2-user@$HOSTNAME
 ```
 
 ## Install and run
