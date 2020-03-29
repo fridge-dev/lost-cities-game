@@ -1,5 +1,5 @@
 /// For impls of the Display trait.
-use crate::types::{GameBoard, GameState, Card, CardColor, CardValue, DecoratedCard};
+use crate::types::{GameBoard, GameState, Card, CardColor, CardValue, DecoratedCard, DrawPile, CardTarget};
 use std::fmt::{Display, Formatter};
 use std::fmt;
 use std::collections::HashMap;
@@ -244,6 +244,24 @@ impl Display for Card {
             self.card_color().to_string_long(),
             self.card_value().to_string_long()
         )
+    }
+}
+
+impl Display for CardTarget {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        match self {
+            CardTarget::Player => write!(f, "Main Player Board"),
+            CardTarget::Neutral => write!(f, "Neutral Discard Pile"),
+        }
+    }
+}
+
+impl Display for DrawPile {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        match self {
+            DrawPile::Main => write!(f, "Main Draw Pile"),
+            DrawPile::Neutral(color) => write!(f, "{} Neutral Discard Pile", color.to_string_long()),
+        }
     }
 }
 

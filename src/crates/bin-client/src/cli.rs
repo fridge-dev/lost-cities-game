@@ -46,12 +46,12 @@ pub mod smart_cli {
     }
 
     pub fn prompt_for_card_target(card: &Card) -> PromptResult<CardTarget> {
-        let cli_card_target = prompt_for_input(&format!("[2/3] Where would you like to play '{}'? (press: [B]oard [N]eutral)", card));
+        let cli_card_target = prompt_for_input(&format!("[2/3] Where would you like to play the {}? (press: [M]ain [D]iscard)", card));
 
         match cli_card_target.to_lowercase().as_str() {
-            "b" => Ok(CardTarget::Player),
-            "n" => Ok(CardTarget::Neutral),
-            _ => Err(Cow::from("Please press either 'b' for your board or 'n' for neutral board.")),
+            "m" => Ok(CardTarget::Player),
+            "d" => Ok(CardTarget::Neutral),
+            _ => Err(Cow::from("Please press either 'm' for your main board or 'd' to discard to neutral board.")),
         }
     }
 
@@ -70,7 +70,7 @@ pub mod smart_cli {
     }
 
     pub fn prompt_confirm_play(card: &Card, target: &CardTarget, draw_pile: &DrawPile) -> PromptResult<bool> {
-        let cli_y_n = prompt_for_input(&format!("Confirm: Play '{}' on '{:?}', then draw from '{:?}'. [y/n]", card, target, draw_pile));
+        let cli_y_n = prompt_for_input(&format!("Confirm: Play '{}' on '{}', then draw from '{}'. [y/n]", card, target, draw_pile));
         println!();
 
         match cli_y_n.to_lowercase().as_str() {

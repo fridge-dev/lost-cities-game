@@ -5,10 +5,9 @@
 * [x] Change card selection to be 1-8
 * [x] Show card selection number under the card
 * [x] Redraw my selected card
-* [ ] Change "Opponent's score" to "{player_id}'s score"
 * [ ] Show score-per-color to help players learn how scoring works
 * [ ] Make "Welcome to the Lost Cities game!" big and blocky
-* [ ] Ensure consistent use of "neutral" and "discard"
+* [x] Ensure consistent use of "neutral" and "discard"
 
 ### Lower priority and/or large effort
 
@@ -21,6 +20,7 @@
   * Which card I drew
 * [ ] Print colored text
 * [ ] Clear terminal screen after each board update
+* [ ] Change "Opponent's score" to "{player_id}'s score"
 
 ## Server
 
