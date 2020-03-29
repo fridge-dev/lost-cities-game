@@ -201,6 +201,7 @@ fn get_next_play_from_cli(game_state: &GameState) -> (&Card, CardTarget, DrawPil
             }
         };
         let card_to_play = decorated_card.card();
+        println!("{}", card_to_play.draw_single());
 
         // CardTarget
         let card_target = match smart_cli::prompt_for_card_target(card_to_play) {

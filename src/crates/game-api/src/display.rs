@@ -13,6 +13,7 @@ const BOARD_NEUTRAL_CARD_BORDER: &str = "|  +-----+  |  +-----+  |  +-----+  |  
 const BOARD_ROW_SIZE: usize = BOARD_ROW_GRID_LINE.len();
 const BOARD_PLAY_CARD_BORDER: &str = "  +-----+  ";
 const BOARD_PLAY_CARD_BLANK: &str = "           ";
+const CARD_BORDER_SINGLE: &str = "+-----+";
 const HAND_BORDER: &str = "+-----+ +-----+ +-----+ +-----+ +-----+ +-----+ +-----+ +-----+";
 const HAND_ROW_SIZE: usize = HAND_BORDER.len();
 const HAND_SELECTION_ROW: &str = "  [1]     [2]     [3]     [4]     [5]     [6]     [7]     [8]";
@@ -242,6 +243,18 @@ impl Display for Card {
             "{} {}",
             self.card_color().to_string_long(),
             self.card_value().to_string_long()
+        )
+    }
+}
+
+impl Card {
+    pub fn draw_single(&self) -> String {
+        format!(
+            "{}\n{}\n{}\n{}\n",
+            CARD_BORDER_SINGLE,
+            format!("|{:^5}|", self.card_value().to_string_short()),
+            format!("|{:^5}|", self.card_color().to_string_short()),
+            CARD_BORDER_SINGLE,
         )
     }
 }
