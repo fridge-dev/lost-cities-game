@@ -15,6 +15,7 @@ const BOARD_PLAY_CARD_BORDER: &str = "  +-----+  ";
 const BOARD_PLAY_CARD_BLANK: &str = "           ";
 const HAND_BORDER: &str = "+-----+ +-----+ +-----+ +-----+ +-----+ +-----+ +-----+ +-----+";
 const HAND_ROW_SIZE: usize = HAND_BORDER.len();
+const HAND_SELECTION_ROW: &str = "  [1]     [2]     [3]     [4]     [5]     [6]     [7]     [8]";
 const COLOR_ORDER: [CardColor; 5] = [
     CardColor::Red,
     CardColor::Green,
@@ -48,6 +49,7 @@ impl Display for GameState {
         lines.push(&hand_number_line);
         lines.push(&hand_color_line);
         lines.push(HAND_BORDER);
+        lines.push(HAND_SELECTION_ROW);
 
         f.write_str(&lines.join("\n"))
     }

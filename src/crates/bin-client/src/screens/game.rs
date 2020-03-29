@@ -72,7 +72,7 @@ pub async fn execute_game_loop(
     // This is kind of lame for flow control and printing. Oh well. :P
     let mut first_loop = true;
     let game_state = game_api.get_game_state(game_id.clone(), my_player_id.clone()).await?;
-    if will_way_on_first_loop(&game_state) {
+    if will_wait_on_first_loop(&game_state) {
         println!("{}", game_state);
         println!("-- {}'s turn --", op_player_id);
         println!();
@@ -178,7 +178,7 @@ async fn wait_for_my_turn(
     }
 }
 
-fn will_way_on_first_loop(game_state: &GameState) -> bool {
+fn will_wait_on_first_loop(game_state: &GameState) -> bool {
     // If it's not our turn, we will wait on the first loop
     if let GameStatus::InProgress(is_my_turn) = game_state.status() {
         !*is_my_turn
