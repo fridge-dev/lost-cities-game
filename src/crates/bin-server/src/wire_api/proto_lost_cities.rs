@@ -114,6 +114,21 @@ pub struct ProtoPlayHistory {
     pub yellow: ::std::vec::Vec<u32>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ProtoScore {
+    #[prost(sint32, tag = "1")]
+    pub total: i32,
+    #[prost(sint32, tag = "2")]
+    pub red: i32,
+    #[prost(sint32, tag = "3")]
+    pub green: i32,
+    #[prost(sint32, tag = "4")]
+    pub white: i32,
+    #[prost(sint32, tag = "5")]
+    pub blue: i32,
+    #[prost(sint32, tag = "6")]
+    pub yellow: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProtoGameMetadata {
     #[prost(string, tag = "1")]
     pub game_id: std::string::String,
@@ -140,10 +155,10 @@ pub struct ProtoGame {
     pub draw_pile_cards_remaining: u32,
     #[prost(enumeration = "ProtoGameStatus", tag = "6")]
     pub status: i32,
-    #[prost(sint32, tag = "7")]
-    pub my_score: i32,
-    #[prost(sint32, tag = "8")]
-    pub op_score: i32,
+    #[prost(message, optional, tag = "7")]
+    pub my_score: ::std::option::Option<ProtoScore>,
+    #[prost(message, optional, tag = "8")]
+    pub op_score: ::std::option::Option<ProtoScore>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProtoDiscardPile {
