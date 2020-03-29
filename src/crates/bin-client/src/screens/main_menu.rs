@@ -73,7 +73,14 @@ r => [r]ead the rules\n\
 
 fn prompt_loop() -> MainMenuAction {
     println!();
-    println!("Welcome to the Lost Cities game!");
+    println!(" ===+==*==+====^===+====");
+    println!("/                       \\");
+    println!("| L O S T   C I T I E S |");
+    println!("]                       [");
+    println!("|  Welcome to the game  |");
+    println!("\\                       /");
+    println!(" ==#==*====*=====+======");
+    println!();
 
     loop {
         match prompt_for_main_menu_action() {
