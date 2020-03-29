@@ -32,14 +32,16 @@ pub mod smart_cli {
     }
 
     pub fn prompt_for_card(hand: &Vec<DecoratedCard>) -> PromptResult<&DecoratedCard> {
-        let cli_hand_index = prompt_for_input("[1/3] Which card would you like to play? (press 0-7 to select card)");
+        let cli_hand_index = prompt_for_input("[1/3] Which card would you like to play? (press 1-8 to select card)");
 
         let hand_index: usize = cli_hand_index.parse().unwrap_or(100);
-        if hand_index > hand.len() - 1 {
-            return Err(Cow::from(format!("Please enter a number between 0 and {}.", hand.len() - 1)));
+        if hand_index > 8 || hand_index < 1 {
+            return Err(Cow::from("Please enter a number between 1 and 8."));
         }
 
-        hand.get(hand_index)
+        assert!(hand.len() == 8, "BUG hand was size {}, not expected size 8", hand.len());
+
+        hand.get(hand_index - 1)
             .ok_or_else(|| Cow::from(format!("Couldn't find card number '{:?}' in your hand. This is likely a bug.", hand_index)))
     }
 
