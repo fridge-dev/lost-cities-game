@@ -5,7 +5,7 @@
 * [x] Change card selection to be 1-8
 * [x] Show card selection number under the card
 * [x] Redraw my selected card
-* [ ] Show score-per-color to help players learn how scoring works
+* [x] Show score-per-color to help players learn how scoring works
 * [x] Make "Welcome to the Lost Cities game!" big and blocky
 * [x] Ensure consistent use of "neutral" and "discard"
 
