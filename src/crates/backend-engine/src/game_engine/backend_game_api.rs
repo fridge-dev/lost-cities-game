@@ -200,11 +200,16 @@ fn convert_game_state(storage_game_state: StorageGameState, is_player_1: bool) -
         (storage_game_state.p2_plays(), storage_game_state.p1_plays())
     };
 
+    let (my_score_total, my_score_per_color) = scoring::compute_score(my_plays);
+    let (op_score_total, op_score_per_color) = scoring::compute_score(op_plays);
+
     let game_board = GameBoard::new(
         my_plays.to_owned(),
         op_plays.to_owned(),
-        scoring::compute_score(my_plays),
-        scoring::compute_score(op_plays),
+        my_score_total,
+        op_score_total,
+        my_score_per_color,
+        op_score_per_color,
         concealed_neutral_draw_pile,
         storage_game_state.main_draw_pile().len(),
     );

@@ -1,4 +1,4 @@
-use crate::wire_api::proto_lost_cities::{ProtoCard, ProtoColor, ProtoDiscardPile, ProtoDiscardPileSurface, ProtoDrawPile, ProtoGame, ProtoGameStatus, ProtoGetGameStateReply, ProtoGetGameStateReq, ProtoHostGameReq, ProtoJoinGameReq, ProtoPlayCardReq, ProtoPlayHistory, ProtoPlayTarget, ProtoGameMetadata, ProtoDescribeGameReq, ProtoQueryGamesReq, ProtoGetMatchableGamesReq};
+use crate::wire_api::proto_lost_cities::{ProtoCard, ProtoColor, ProtoDiscardPile, ProtoDiscardPileSurface, ProtoDrawPile, ProtoGame, ProtoGameStatus, ProtoGetGameStateReply, ProtoGetGameStateReq, ProtoHostGameReq, ProtoJoinGameReq, ProtoPlayCardReq, ProtoPlayHistory, ProtoPlayTarget, ProtoGameMetadata, ProtoDescribeGameReq, ProtoQueryGamesReq, ProtoGetMatchableGamesReq, ProtoScore};
 use game_api::types::{Card, CardColor, CardTarget, CardValue, DecoratedCard, DrawPile, GameResult, GameState, GameStatus, Play, GameMetadata};
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -166,9 +166,15 @@ impl From<GameState> for ProtoGetGameStateReply {
             opponent_plays: Some(into_proto_play_history(game_state.game_board().op_plays())),
             discard_pile: Some(into_proto_discard_pile(game_state.game_board().neutral_draw_pile())),
             draw_pile_cards_remaining: *game_state.game_board().draw_pile_cards_remaining() as u32,
-            status: into_proto_game_status(&game_state) as i32,
-            my_score: *game_state.game_board().my_score(),
-            op_score: *game_state.game_board().op_score(),
+            status: ProtoGameStatus::from(*game_state.status()) as i32,
+            my_score: Some(ProtoScore::from((
+                *game_state.game_board().my_score_total(),
+                game_state.game_board().my_score_per_color().clone(),
+            ))),
+            op_score: Some(ProtoScore::from((
+                *game_state.game_board().op_score_total(),
+                game_state.game_board().op_score_per_color().clone(),
+            ))),
         };
 
         ProtoGetGameStateReply {
@@ -224,23 +230,6 @@ fn into_proto_discard_pile(neutral_draw_pile: &HashMap<CardColor, (CardValue, us
         white: inner_converter(CardColor::White),
         blue: inner_converter(CardColor::Blue),
         yellow: inner_converter(CardColor::Yellow),
-    }
-}
-
-fn into_proto_game_status(game_state: &GameState) -> ProtoGameStatus {
-    match game_state.status() {
-        GameStatus::InProgress(my_turn) => {
-            if *my_turn {
-                ProtoGameStatus::YourTurn
-            } else {
-                ProtoGameStatus::OpponentTurn
-            }
-        }
-        GameStatus::Complete(result) => match result {
-            GameResult::Win => ProtoGameStatus::EndWin,
-            GameResult::Lose => ProtoGameStatus::EndLose,
-            GameResult::Draw => ProtoGameStatus::EndDraw,
-        },
     }
 }
 
@@ -310,6 +299,19 @@ impl From<GameStatus> for ProtoGameStatus {
                 GameResult::Lose => ProtoGameStatus::EndLose,
                 GameResult::Draw => ProtoGameStatus::EndDraw,
             },
+        }
+    }
+}
+
+impl From<(i32, HashMap<CardColor, i32>)> for ProtoScore {
+    fn from((score_total, score_per_color): (i32, HashMap<CardColor, i32>)) -> Self {
+        ProtoScore {
+            total: score_total,
+            red: score_per_color.get(&CardColor::Red).map_or(0, |v| *v),
+            green: score_per_color.get(&CardColor::Green).map_or(0, |v| *v),
+            white: score_per_color.get(&CardColor::White).map_or(0, |v| *v),
+            blue: score_per_color.get(&CardColor::Blue).map_or(0, |v| *v),
+            yellow: score_per_color.get(&CardColor::Yellow).map_or(0, |v| *v),
         }
     }
 }

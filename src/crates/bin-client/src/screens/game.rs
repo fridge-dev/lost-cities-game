@@ -272,8 +272,8 @@ fn check_is_game_over_and_print_outcome(game_state: &GameState) -> bool {
 
             println!(
                 "Score: {} to {}",
-                game_state.game_board().my_score(),
-                game_state.game_board().op_score()
+                game_state.game_board().my_score_total(),
+                game_state.game_board().op_score_total()
             );
             return true;
         }

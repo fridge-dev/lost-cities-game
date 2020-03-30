@@ -1,12 +1,21 @@
 use game_api::types::{CardValue, CardColor};
 use std::collections::HashMap;
 
-pub fn compute_score(plays: &HashMap<CardColor, Vec<CardValue>>) -> i32 {
-    plays
-        .values()
-        .into_iter()
-        .map(|plays| compute_score_for_color(plays))
-        .sum()
+/// Returns a tuple of the (total, per-color) score.
+pub fn compute_score(plays: &HashMap<CardColor, Vec<CardValue>>) -> (i32, HashMap<CardColor, i32>) {
+    let mut score_total = 0;
+    let mut score_per_color = HashMap::with_capacity(plays.len());
+
+    for (color, cards) in plays.iter() {
+        let score = compute_score_for_color(cards);
+        score_total += score;
+        score_per_color.insert(*color, score);
+    }
+
+    (
+        score_total,
+        score_per_color
+    )
 }
 
 fn compute_score_for_color(column: &Vec<CardValue>) -> i32 {
@@ -36,7 +45,6 @@ fn compute_score_for_color(column: &Vec<CardValue>) -> i32 {
     return score * wager_multiplier + bonus;
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -44,8 +52,9 @@ mod tests {
 
     fn compute_score_test_helper(expected_score: i32, previous_plays_vec: Vec<(CardColor, u32)>) {
         let previous_plays = previous_plays(previous_plays_vec);
+        let (total_score, _) = compute_score(&previous_plays);
 
-        assert_eq!(compute_score(&previous_plays), expected_score, "Plays {:?} did not match expected score {}", &previous_plays, expected_score);
+        assert_eq!(total_score, expected_score, "Plays {:?} did not match expected score {}", &previous_plays, expected_score);
     }
 
     fn previous_plays(previous_plays_vec: Vec<(CardColor, u32)>) -> HashMap<CardColor, Vec<CardValue>> {

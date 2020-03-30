@@ -1,5 +1,5 @@
 use crate::client_game_api::error::ClientGameError;
-use crate::wire_api::proto_lost_cities::{ProtoPlayCardReq, ProtoPlayTarget, ProtoDrawPile, ProtoCard, ProtoColor, ProtoGame, ProtoGameStatus, ProtoPlayHistory, ProtoDiscardPile, ProtoDiscardPileSurface, ProtoGameMetadata};
+use crate::wire_api::proto_lost_cities::{ProtoPlayCardReq, ProtoPlayTarget, ProtoDrawPile, ProtoCard, ProtoColor, ProtoGame, ProtoGameStatus, ProtoPlayHistory, ProtoDiscardPile, ProtoDiscardPileSurface, ProtoGameMetadata, ProtoScore};
 use game_api::types::{Play, Card, CardColor, CardValue, CardTarget, DrawPile, GameState, GameStatus, GameResult, DecoratedCard, GameBoard, GameMetadata};
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -66,6 +66,12 @@ impl TryFrom<ProtoGame> for GameState {
         let op_plays = proto_game.opponent_plays
             .ok_or(ClientGameError::MalformedResponse(Cow::from("Missing required OpponentPlays")))?
             .try_into()?;
+        let (my_score_total, my_score_per_color) = proto_game.my_score
+            .ok_or(ClientGameError::MalformedResponse(Cow::from("Missing required MyScore")))?
+            .into();
+        let (op_score_total, op_score_per_color) = proto_game.op_score
+            .ok_or(ClientGameError::MalformedResponse(Cow::from("Missing required OpponentScore")))?
+            .into();
         let neutral_board = proto_game.discard_pile
             .ok_or(ClientGameError::MalformedResponse(Cow::from("Missing required DiscardPile")))?
             .try_into()?;
@@ -73,8 +79,10 @@ impl TryFrom<ProtoGame> for GameState {
         let game_board = GameBoard::new(
             my_plays,
             op_plays,
-            proto_game.my_score,
-            proto_game.op_score,
+            my_score_total,
+            op_score_total,
+            my_score_per_color,
+            op_score_per_color,
             neutral_board,
             proto_game.draw_pile_cards_remaining as usize,
         );
@@ -151,6 +159,19 @@ impl TryFrom<ProtoPlayHistory> for HashMap<CardColor, Vec<CardValue>> {
         }
 
         Ok(play_history)
+    }
+}
+
+impl From<ProtoScore> for (i32, HashMap<CardColor, i32>) {
+    fn from(proto_score: ProtoScore) -> Self {
+        let mut score_per_color = HashMap::with_capacity(5);
+        score_per_color.insert(CardColor::Red, proto_score.red);
+        score_per_color.insert(CardColor::Blue, proto_score.blue);
+        score_per_color.insert(CardColor::Green, proto_score.green);
+        score_per_color.insert(CardColor::White, proto_score.white);
+        score_per_color.insert(CardColor::Yellow, proto_score.yellow);
+
+        (proto_score.total, score_per_color)
     }
 }
 

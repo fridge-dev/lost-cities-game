@@ -1,6 +1,5 @@
 use std::collections::HashMap;
-use std::fmt::{Debug, Formatter};
-use std::fmt;
+use std::fmt::Debug;
 use std::convert::TryFrom;
 
 #[derive(Debug)]
@@ -93,11 +92,14 @@ impl GameState {
     }
 }
 
+#[derive(Debug)]
 pub struct GameBoard {
     my_plays: HashMap<CardColor, Vec<CardValue>>,
     op_plays: HashMap<CardColor, Vec<CardValue>>,
-    my_score: i32,
-    op_score: i32,
+    my_score_total: i32,
+    op_score_total: i32,
+    my_score_per_color: HashMap<CardColor, i32>,
+    op_score_per_color: HashMap<CardColor, i32>,
     neutral_draw_pile: HashMap<CardColor, (CardValue, usize)>,
     draw_pile_cards_remaining: usize,
 }
@@ -106,16 +108,20 @@ impl GameBoard {
     pub fn new(
         my_plays: HashMap<CardColor, Vec<CardValue>>,
         op_plays: HashMap<CardColor, Vec<CardValue>>,
-        my_score: i32,
-        op_score: i32,
+        my_score_total: i32,
+        op_score_total: i32,
+        my_score_per_color: HashMap<CardColor, i32>,
+        op_score_per_color: HashMap<CardColor, i32>,
         neutral_draw_pile: HashMap<CardColor, (CardValue, usize)>,
         draw_pile_cards_remaining: usize
     ) -> Self {
         GameBoard {
             my_plays,
             op_plays,
-            my_score,
-            op_score,
+            my_score_total,
+            op_score_total,
+            my_score_per_color,
+            op_score_per_color,
             neutral_draw_pile,
             draw_pile_cards_remaining
         }
@@ -129,12 +135,20 @@ impl GameBoard {
         &self.op_plays
     }
 
-    pub fn my_score(&self) -> &i32 {
-        &self.my_score
+    pub fn my_score_total(&self) -> &i32 {
+        &self.my_score_total
     }
 
-    pub fn op_score(&self) -> &i32 {
-        &self.op_score
+    pub fn op_score_total(&self) -> &i32 {
+        &self.op_score_total
+    }
+
+    pub fn my_score_per_color(&self) -> &HashMap<CardColor, i32> {
+        &self.my_score_per_color
+    }
+
+    pub fn op_score_per_color(&self) -> &HashMap<CardColor, i32> {
+        &self.op_score_per_color
     }
 
     pub fn neutral_draw_pile(&self) -> &HashMap<CardColor, (CardValue, usize)> {
@@ -144,29 +158,6 @@ impl GameBoard {
     pub fn draw_pile_cards_remaining(&self) -> &usize {
         &self.draw_pile_cards_remaining
     }
-}
-
-impl Debug for GameBoard {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(
-            f,
-            "GameBoard {{ my_plays: {}, op_plays: {}, my_score: {}, op_score: {}, neutral_draw_pile: {}, draw_pile_cards_remaining: {} }}",
-            fmt_hash_map(&self.my_plays),
-            fmt_hash_map(&self.op_plays),
-            self.my_score,
-            self.op_score,
-            fmt_hash_map(&self.neutral_draw_pile),
-            self.draw_pile_cards_remaining,
-        )
-    }
-}
-
-fn fmt_hash_map<K: Debug, V: Debug>(map: &HashMap<K, V>) -> String {
-    let mut v: Vec<String> = Vec::with_capacity(map.len());
-    for (key, val) in map.iter() {
-        v.push(format!("{:?}: {:?}", &key, &val));
-    }
-    format!("HashMap {{ {} }}", v.join(", "))
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]

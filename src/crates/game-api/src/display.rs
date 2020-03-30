@@ -6,6 +6,8 @@ use std::collections::HashMap;
 #[allow(unused_imports)] // Needs to be in scope, despite not used
 use std::convert::TryFrom;
 
+const BOARD_ROW_END_LINE: &str = "+-----------------------------------------------------------+";
+const BOARD_ROW_END_BLANK: &str = "|                                                           |";
 const BOARD_ROW_GRID_LINE: &str = "+-----------+-----------+-----------+-----------+-----------+";
 const BOARD_ROW_GRID_BLANK: &str = "|           |           |           |           |           |";
 const BOARD_NEUTRAL_HEADER: &str = "|    Red    |   Green   |   White   |   Blue    |  Yellow   |";
@@ -61,9 +63,12 @@ impl Display for GameBoard {
         let mut lines = Vec::new();
 
         // Opponent's score
-        lines.push(BOARD_ROW_GRID_LINE);
-        let opponent_score_line = format!("| Opponent's score: {:<4}{:36}|", self.op_score(), "");
+        lines.push(BOARD_ROW_END_LINE);
+        let opponent_score_line = format!("| Opponent's total score: {:<4}{:30}|", self.op_score_total(), "");
         lines.push(&opponent_score_line);
+        lines.push(BOARD_ROW_END_BLANK);
+        let opponent_score_per_color_line = draw_score_per_color(self.op_score_per_color());
+        lines.push(&opponent_score_per_color_line);
 
         // Opponent's plays
         lines.push(BOARD_ROW_GRID_LINE);
@@ -100,9 +105,12 @@ impl Display for GameBoard {
 
         // My score
         lines.push(BOARD_ROW_GRID_LINE);
-        let my_score_line = format!("| Your score: {:<4}{:42}|", self.my_score(), "");
+        let my_score_per_color_line = draw_score_per_color(self.my_score_per_color());
+        lines.push(&my_score_per_color_line);
+        lines.push(BOARD_ROW_END_BLANK);
+        let my_score_line = format!("| Your total score: {:<4}{:36}|", self.my_score_total(), "");
         lines.push(&my_score_line);
-        lines.push(BOARD_ROW_GRID_LINE);
+        lines.push(BOARD_ROW_END_LINE);
 
         // Draw pile
         let draw_pile_line = format!("Main draw pile: {} cards remaining", self.draw_pile_cards_remaining());
@@ -111,6 +119,19 @@ impl Display for GameBoard {
         // Fin
         f.write_str(&lines.join("\n"))
     }
+}
+
+fn draw_score_per_color(score_per_color: &HashMap<CardColor, i32>) -> String {
+    let mut cells = Vec::with_capacity(COLOR_ORDER.len());
+
+    for color in COLOR_ORDER.iter() {
+        match score_per_color.get(color) {
+            Some(score) => cells.push(format!("{:^11}", format!("{} pts", score))),
+            None => cells.push(format!("{:^11}", "0 pts")),
+        }
+    }
+
+    format!("|{}|", cells.join(" "))
 }
 
 fn draw_op_plays(op_plays: &HashMap<CardColor, Vec<CardValue>>) -> Vec<String> {
@@ -365,6 +386,13 @@ mod tests {
             CardValue::try_from(10).unwrap(),
         ]);
 
+        let mut my_score = HashMap::new();
+        my_score.insert(CardColor::Red, -10);
+        my_score.insert(CardColor::Yellow, 20);
+        let mut op_score = HashMap::new();
+        op_score.insert(CardColor::Blue, -10);
+        op_score.insert(CardColor::Green, 20);
+
         let mut neutral_draw_pile = HashMap::new();
         neutral_draw_pile.insert(CardColor::White, (CardValue::try_from(1).unwrap(), 3));
         neutral_draw_pile.insert(CardColor::Yellow, (CardValue::try_from(4).unwrap(), 1));
@@ -375,6 +403,8 @@ mod tests {
             op_plays,
             100,
             200,
+            my_score,
+            op_score,
             neutral_draw_pile,
             40
         );
