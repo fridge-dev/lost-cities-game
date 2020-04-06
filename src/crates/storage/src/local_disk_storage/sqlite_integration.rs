@@ -1,13 +1,13 @@
 use rusqlite::{NO_PARAMS, Connection, OpenFlags, Row, ToSql};
-use std::error::Error;
 use std::path::Path;
+use crate::local_disk_storage::sqlite_tables::{SqlGameSummary, SqlGameData};
 
-type SqliteResult<T> = Result<T, Box<dyn Error>>;
+type SqliteResult<T> = Result<T, rusqlite::Error>;
 
 /// Probably an unnecessary abstraction layer, but it helps me keep track of
 /// all of the ways in which I integrate with sqlite.
 pub struct SqliteWrapper {
-    pub connection: Connection,
+    connection: Connection,
 }
 
 impl SqliteWrapper {
@@ -41,17 +41,17 @@ impl SqliteWrapper {
             if row_results_iter.next().is_none() {
                 Ok(Some(row_result?))
             } else {
-                Err(format!(
+                Err(rusqlite::Error::UserFunctionError(format!(
                     "Multiple items returned for a SELECT with primary key. Key: {}",
                     hash_key
-                ).into())
+                ).into()))
             }
         } else {
             Ok(None)
         }
     }
 
-    pub fn insert_row<R: SqlTableRow>(&self, item: R) -> SqliteResult<()> {
+    pub fn insert_row<R: SqlTableRow>(&self, item: &R) -> SqliteResult<()> {
         let statement_and_params = item.insert_statement_and_params();
         self.prepare_and_execute_named(statement_and_params, "INSERT")
     }
@@ -71,13 +71,21 @@ impl SqliteWrapper {
         if num_rows_changed == 1 {
             Ok(())
         } else {
-            Err(format!(
+            Err(rusqlite::Error::UserFunctionError(format!(
                 "Successfully executed '{}', but changed '{}' rows when we expected to change only 1",
                 debug_message,
                 num_rows_changed,
-            ).into())
+            ).into()))
         }
     }
+}
+
+/// Not sure if I will keep this around... but here it is, for now.
+pub(crate) fn create_all_tables(sqlite_wrapper: &SqliteWrapper) -> SqliteResult<()> {
+    sqlite_wrapper.create_table::<SqlGameSummary>()?;
+    sqlite_wrapper.create_table::<SqlGameData>()?;
+
+    Ok(())
 }
 
 /// For use with `prepare` and `execute_named`.

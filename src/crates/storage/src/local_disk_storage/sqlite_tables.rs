@@ -5,8 +5,8 @@ use crate::local_disk_storage::sqlite_integration::{SqlTableRow, StatementAndPar
 pub struct SqlGameSummary {
     pub game_id: String,
     pub game_creation_time_sec: u32,
-    pub game_type: u32,
-    pub game_status: u32,
+    pub game_type: u8,
+    pub game_status: u8,
     pub game_summary_blob_opt: Option<Vec<u8>>
 }
 

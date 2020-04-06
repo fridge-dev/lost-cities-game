@@ -9,7 +9,9 @@ edition = "2018"
 game-api = { path = "../game-api" }
 
 # 3p
-rusqlite = "=0.21.0"
+rusqlite = { version = "=0.21.0", features = ["functions"] }
+tokio = { version = "0.2", features = ["full"] }
+async-trait = "0.1.24"
 
 [dev-dependencies]
 rand = "=0.7.3"

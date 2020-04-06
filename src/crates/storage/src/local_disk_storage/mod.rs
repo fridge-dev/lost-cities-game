@@ -39,7 +39,7 @@
 //! 2. `GameData`
 //!     * This table is for high-mutation data. This table will likely be fronted by a two-way HTTP2 stream between client and server.
 //!     * This table will hold a game-specific data blob used to store state which is updated on a "per-turn" basis.
-//!
+//!     * It is not expected for this table to be accessed after a game is complete or before it has started.
 pub(crate) mod sqlite_integration;
 pub(crate) mod sqlite_tables;
 #[cfg(test)]

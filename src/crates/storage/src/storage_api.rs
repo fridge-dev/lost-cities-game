@@ -3,19 +3,15 @@ use crate::storage_types::{StorageGameMetadata, StorageError, StorageGameState};
 /// A GameStore is the storage layer of the game engine. It is responsible for durably persisting the state
 /// of the game. It is NOT responsible for applying rules of the game to the provided game board state.
 ///
-/// Planning on the following 4 implementations (via Iterative Development™)
+/// For future proofing, there should be one method per-table per-access-pattern. Methods grouped by
+/// classic CURD pattern.
 ///
-/// **When game is run as a single process**
-/// 1. ProcessLocalStore - In-memory storage for a game (2 clients & 1 server) run on a single process
+/// This trait uses `&mut self` and non-`async` for all methods. It was initially designed as an
+/// in-memory cache. Since it's not possible to share a storage client across threads as mut
+/// (without mutex, gross), this trait should either be considered deprecated or this should be
+/// renamed to LocalCache.
 ///
-/// **When game is run as 3 separate processes** (1 server and 2 clients)
-/// 2. NetworkStore - For client processes, this is external storage accessible via network with the same interface (gRPC-like)
-/// 3. ServerLocalStore - For server process, an in-memory (or disk) storage
-/// 4. ServerDbStore - For server process, a storage backed by an external DB
-///
-/// For future proofing, there should be one method per-table per-access-pattern.
-///
-/// Methods grouped by classic CURD pattern.
+/// You should instead see `GameDatabase` trait in the v2 API.
 pub trait GameStore {
 
     // C
