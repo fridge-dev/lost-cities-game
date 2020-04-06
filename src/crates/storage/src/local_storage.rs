@@ -2,16 +2,16 @@ use crate::storage_types::{StorageGameMetadata, StorageError, StorageGameState};
 use crate::storage_api::GameStore;
 use std::collections::HashMap;
 
-pub struct LocalStore {
+pub struct InMemoryStore {
     // Indexed by game_id
     metadata_map: HashMap<String, StorageGameMetadata>,
     // Indexed by game_id
     state_map: HashMap<String, StorageGameState>,
 }
 
-impl LocalStore {
+impl InMemoryStore {
     pub fn new() -> Self {
-        LocalStore {
+        InMemoryStore {
             metadata_map: HashMap::new(),
             state_map: HashMap::new(),
         }
@@ -28,7 +28,7 @@ impl LocalStore {
 ///
 /// Read methods return clones of the storage's data, so callers can freely mutate the returned data without
 /// corrupting the storage.
-impl GameStore for LocalStore {
+impl GameStore for InMemoryStore {
 
     fn create_game_metadata(&mut self, game_metadata: StorageGameMetadata) -> Result<(), StorageError> {
         if self.metadata_map.contains_key(game_metadata.game_id()) {
@@ -88,7 +88,7 @@ mod tests {
 
     #[test]
     fn create_load_game_metadata() {
-        let mut local_store = LocalStore::new();
+        let mut local_store = InMemoryStore::new();
 
         let metadata = StorageGameMetadata::new(
             "game-123".to_owned(),
@@ -117,7 +117,7 @@ mod tests {
 
     #[test]
     fn update_game_metadata() {
-        let mut local_store = LocalStore::new();
+        let mut local_store = InMemoryStore::new();
 
         let metadata = StorageGameMetadata::new(
             "game-123".to_owned(),
@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn create_load_game_state() {
-        let mut local_store = LocalStore::new();
+        let mut local_store = InMemoryStore::new();
 
         let game_state = StorageGameState::new(
             "game-123".to_owned(),
@@ -186,7 +186,7 @@ mod tests {
 
     #[test]
     fn update_game_state() {
-        let mut local_store = LocalStore::new();
+        let mut local_store = InMemoryStore::new();
 
         let game_state = StorageGameState::new(
             "game-123".to_owned(),

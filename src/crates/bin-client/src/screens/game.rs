@@ -1,5 +1,3 @@
-#![allow(unused_variables)]
-#![allow(unused_mut)]
 use game_api::types::{GameState, Card, CardTarget, DrawPile, GameStatus, GameResult, Play};
 use crate::cli::smart_cli;
 use client_engine::client_game_api::error::ClientGameError;
@@ -15,7 +13,7 @@ pub async fn wait_for_game_to_fill(
 ) -> Result<(), Box<dyn Error>> {
     loop {
         let game_metadata = game_api.describe_game(game_id.clone()).await?;
-        if let Some((guest_player_id, status)) = game_metadata.matched_data() {
+        if let Some((guest_player_id, _)) = game_metadata.matched_data() {
             println!("Player '{}' joined. Let's play!", guest_player_id);
             return Ok(());
         } else {

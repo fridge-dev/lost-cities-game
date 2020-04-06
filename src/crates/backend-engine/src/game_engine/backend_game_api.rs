@@ -3,7 +3,7 @@ use game_api::types::{GameState, Play, Card, GameBoard, CardTarget, CardColor, C
 use rules::deck::DeckFactory;
 use rules::{plays, scoring, endgame};
 use std::collections::HashMap;
-use storage::local_storage::LocalStore;
+use storage::local_storage::InMemoryStore;
 use storage::storage_api::GameStore;
 use storage::storage_types::{StorageGameMetadata, StorageGameStatus, StorageError, StorageGameState};
 use crate::backend_error::{BackendGameError, Cause, Reason};
@@ -23,7 +23,7 @@ pub struct BackendGameApi {
 impl BackendGameApi {
     pub fn new() -> Self {
         BackendGameApi {
-            storage: Box::new(LocalStore::new()),
+            storage: Box::new(InMemoryStore::new()),
             deck_factory: DeckFactory::new(),
         }
     }
