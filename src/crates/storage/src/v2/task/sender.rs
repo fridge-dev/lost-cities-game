@@ -1,20 +1,19 @@
 use crate::v2::db_api::GameDatabase;
 use crate::v2::db_types::{DbGameSummary, DbError, DbGameData, DbErrorCause};
 use crate::v2::task::events::{DbTaskEvent, WriteTargetTable};
-use std::sync::mpsc::Sender;
+use crossbeam::channel::Sender;
 use tokio::sync::{oneshot, oneshot::Receiver, oneshot::error::RecvError};
-use std::sync::{Arc, Mutex};
 
 #[derive(Clone)]
 pub struct DatabaseClient {
-    sender: Arc<Mutex<Sender<DbTaskEvent>>>,
+    sender: Sender<DbTaskEvent>,
 }
 
 impl DatabaseClient {
 
     pub(crate) fn new(sender: Sender<DbTaskEvent>) -> Self {
         DatabaseClient {
-            sender: Arc::new(Mutex::new(sender))
+            sender
         }
     }
 
@@ -23,7 +22,7 @@ impl DatabaseClient {
         event: DbTaskEvent,
         response_callback: Receiver<Result<T, DbError>>
     ) -> Result<T, DbError> {
-        self.sender.lock().unwrap().send(event)
+        self.sender.send(event)
             .map_err(|_| DbError::Internal(DbErrorCause::Internal(
                 "The DatabaseBackendTask event loop has stopped. This should never happen."
             )))?;

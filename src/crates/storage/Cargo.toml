@@ -12,6 +12,7 @@ game-api = { path = "../game-api" }
 rusqlite = { version = "=0.21.0", features = ["functions"] }
 tokio = { version = "0.2", features = ["full"] }
 async-trait = "0.1.24"
+crossbeam = "0.7.3"
 
 [dev-dependencies]
 rand = "=0.7.3"

@@ -3,7 +3,7 @@ use crate::local_disk_storage::sqlite_integration::SqliteWrapper;
 use crate::local_disk_storage::sqlite_tables::{SqlGameData, SqlGameSummary};
 use crate::v2::db_types::{DbGameSummary, DbError, DbGameData};
 use crate::v2::db_api::DbResult;
-use std::sync::mpsc::Receiver;
+use crossbeam::channel::Receiver;
 use tokio::sync::oneshot::Sender;
 use std::fmt::Debug;
 use std::convert::TryFrom;
@@ -29,6 +29,7 @@ impl DatabaseBackendTask {
     pub fn event_loop(self) {
         println!("INFO Starting DatabaseBackendTask event loop.");
 
+        // .recv() blocks the thread
         while let Ok(event) = self.receiver.recv() {
             self.handle_event(event);
         }
