@@ -5,6 +5,8 @@ use tokio::sync::oneshot;
 use crate::game_engine::backend_game_api::BackendGameApi;
 use crate::task::backend_task_event::BackendTaskEvent;
 use std::fmt::Debug;
+use storage::v2::db_api::GameDatabase;
+use std::sync::Arc;
 
 pub struct BackendTaskHandler {
     receiver: mpsc::UnboundedReceiver<BackendTaskEvent>,
@@ -12,10 +14,13 @@ pub struct BackendTaskHandler {
 }
 
 impl BackendTaskHandler {
-    pub fn new(receiver: mpsc::UnboundedReceiver<BackendTaskEvent>) -> Self {
+    pub fn new(
+        receiver: mpsc::UnboundedReceiver<BackendTaskEvent>,
+        db_client: Arc<dyn GameDatabase + Send + Sync>
+    ) -> Self {
         BackendTaskHandler {
             receiver,
-            game_api: Box::new(BackendGameApi::new()),
+            game_api: Box::new(BackendGameApi::new(db_client)),
         }
     }
 

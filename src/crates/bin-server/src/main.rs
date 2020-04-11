@@ -10,9 +10,10 @@ const DEFAULT_PORT: u16 = 8051;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (_, port) = get_cli_args();
 
-    let server_impl = LostCitiesBackendServer::new();
+    let server_impl = LostCitiesBackendServer::start()?;
 
-    let addr: SocketAddr = format!("[::]:{}", port).parse()
+    let addr: SocketAddr = format!("[::]:{}", port)
+        .parse()
         .expect("This should never happen. It's a valid IP address, dammit.");
     println!("Going to listen on '{:?}'", addr);
 

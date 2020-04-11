@@ -10,7 +10,6 @@ path = "src/main.rs"
 
 [dependencies]
 # 1p
-storage = { path = "../storage" }
 rules = { path = "../rules" }
 game-api = { path = "../game-api" }
 backend-engine = { path = "../backend-engine" }

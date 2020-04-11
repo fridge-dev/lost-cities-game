@@ -4,18 +4,23 @@ use crate::task::backend_task_client;
 use crate::task::backend_task_client::BackendTaskClientAdapter;
 use game_api::types::{GameMetadata, Play, GameState};
 use std::cmp;
+use std::error::Error;
+use storage::v2::config;
+use storage::v2::config::DatabaseMode;
 
-pub fn spawn_slotted_backend() -> SlottedGameApi2Immut {
+pub fn spawn_slotted_backend() -> Result<SlottedGameApi2Immut, Box<dyn Error>> {
+    let db_client = config::connect_to_database(DatabaseMode::Prod)?;
+
     let num_tasks = get_num_backend_tasks_to_spawn();
 
     let mut task_clients = Vec::with_capacity(num_tasks);
     for _ in 0..num_tasks {
-        task_clients.push(backend_task_client::spawn_backend_task());
+        task_clients.push(backend_task_client::spawn_backend_task(db_client.clone()));
     }
 
-    SlottedGameApi2Immut {
+    Ok(SlottedGameApi2Immut {
         slots: Slots::new(task_clients)
-    }
+    })
 }
 
 fn get_num_backend_tasks_to_spawn() -> usize {

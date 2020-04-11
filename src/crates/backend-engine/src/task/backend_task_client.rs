@@ -3,13 +3,17 @@ use crate::game_api::{GameApi2Immut, GameApiResult};
 use crate::task::backend_task_event::{BackendTaskEvent, EventPayload};
 use crate::task::backend_task_handler::BackendTaskHandler;
 use game_api::types::{GameMetadata, GameState, Play};
+use std::sync::Arc;
+use storage::v2::db_api::GameDatabase;
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 
-pub fn spawn_backend_task() -> BackendTaskClientAdapter {
+pub fn spawn_backend_task(
+    db_client: Arc<dyn GameDatabase + Send + Sync>
+) -> BackendTaskClientAdapter {
     let (sender, receiver) = mpsc::unbounded_channel::<BackendTaskEvent>();
 
-    let task = BackendTaskHandler::new(receiver);
+    let task = BackendTaskHandler::new(receiver, db_client);
     tokio::spawn(task.start_event_loop());
 
     BackendTaskClientAdapter::new(sender)

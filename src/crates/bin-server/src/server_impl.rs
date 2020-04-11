@@ -6,6 +6,7 @@ use game_api::types::{GameMetadata, Play};
 use chrono::Utc;
 use crate::wire_api::error_converters::IntoTonicStatus;
 use backend_engine::game_api::GameApi2Immut;
+use std::error::Error;
 
 /// Backend server is the entry point which will implement the gRPC server type.
 pub struct LostCitiesBackendServer {
@@ -13,9 +14,13 @@ pub struct LostCitiesBackendServer {
 }
 
 impl LostCitiesBackendServer {
-    pub fn new() -> Self {
+    pub fn start() -> Result<Self, Box<dyn Error>> {
+        Ok(LostCitiesBackendServer::new(backend_engine::start_backend()?))
+    }
+
+    fn new(game_api: Box<dyn GameApi2Immut + Send + Sync>) -> Self {
         LostCitiesBackendServer {
-            game_api: backend_engine::start_backend()
+            game_api
         }
     }
 }

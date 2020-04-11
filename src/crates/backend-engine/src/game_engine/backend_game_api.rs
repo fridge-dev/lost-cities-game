@@ -1,13 +1,14 @@
+use crate::backend_error::{BackendGameError, Cause, Reason};
 use game_api::api::GameApi2;
 use game_api::types::{GameState, Play, Card, GameBoard, CardTarget, CardColor, CardValue, DrawPile, GameMetadata, GameStatus, GameResult};
 use rules::deck::DeckFactory;
 use rules::{plays, scoring, endgame};
 use std::collections::HashMap;
+use std::sync::Arc;
 use storage::local_storage::InMemoryStore;
 use storage::storage_api::GameStore;
 use storage::storage_types::{StorageGameMetadata, StorageGameStatus, StorageError, StorageGameState};
-use crate::backend_error::{BackendGameError, Cause, Reason};
-use std::sync::Arc;
+use storage::v2::db_api::GameDatabase;
 
 /// Impl of `GameApi2` which applies rules engine to game model and persists game
 /// in the storage layer.
@@ -17,13 +18,15 @@ use std::sync::Arc;
 /// which acts as a cache over the database.
 pub struct BackendGameApi {
     storage: Box<dyn GameStore + Send>,
+    storage2: Arc<dyn GameDatabase + Send + Sync>,
     deck_factory: DeckFactory,
 }
 
 impl BackendGameApi {
-    pub fn new() -> Self {
+    pub fn new(db_client: Arc<dyn GameDatabase + Send + Sync>) -> Self {
         BackendGameApi {
             storage: Box::new(InMemoryStore::new()),
+            storage2: db_client,
             deck_factory: DeckFactory::new(),
         }
     }
