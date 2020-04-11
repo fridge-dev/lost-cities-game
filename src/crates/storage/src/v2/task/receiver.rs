@@ -3,21 +3,21 @@ use crate::local_disk_storage::sqlite_integration::SqliteWrapper;
 use crate::local_disk_storage::sqlite_tables::{SqlGameData, SqlGameSummary};
 use crate::v2::db_types::{DbGameSummary, DbError, DbGameData};
 use crate::v2::db_api::DbResult;
-use tokio::sync::mpsc::UnboundedReceiver;
+use std::sync::mpsc::Receiver;
 use tokio::sync::oneshot::Sender;
 use std::fmt::Debug;
 use std::convert::TryFrom;
 
 /// Backend event loop of the async task model.
 pub struct DatabaseBackendTask {
-    receiver: UnboundedReceiver<DbTaskEvent>,
+    receiver: Receiver<DbTaskEvent>,
     db_manager: DbManager,
 }
 
 impl DatabaseBackendTask {
 
     pub fn new(
-        receiver: UnboundedReceiver<DbTaskEvent>,
+        receiver: Receiver<DbTaskEvent>,
         sqlite: SqliteWrapper,
     ) -> Self {
         DatabaseBackendTask {
@@ -26,10 +26,10 @@ impl DatabaseBackendTask {
         }
     }
 
-    pub async fn event_loop(mut self) {
+    pub fn event_loop(self) {
         println!("INFO Starting DatabaseBackendTask event loop.");
 
-        while let Some(event) = self.receiver.recv().await {
+        while let Ok(event) = self.receiver.recv() {
             self.handle_event(event);
         }
 

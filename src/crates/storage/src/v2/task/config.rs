@@ -1,21 +1,15 @@
 use crate::local_disk_storage::sqlite_integration::SqliteWrapper;
 use crate::v2::task::receiver::DatabaseBackendTask;
 use crate::v2::task::sender::DatabaseClient;
-use tokio::sync::mpsc;
-use tokio::task;
+use std::sync::mpsc as std_mpsc;
+use std::thread;
 
 pub(crate) fn start_database_task(sqlite: SqliteWrapper) -> DatabaseClient {
-    let (tx, rx) = mpsc::unbounded_channel();
+    let (tx, rx) = std_mpsc::channel();
 
     let backend_task = DatabaseBackendTask::new(rx, sqlite);
 
-//    let mut runtime = tokio::runtime::Builder::new()
-//        .core_threads(1)
-//        .max_threads(1)
-//        .build()
-//        .unwrap();
-
-    task::spawn_blocking(|| {
+    thread::spawn(|| {
         backend_task.event_loop()
     });
 
