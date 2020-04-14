@@ -2,6 +2,7 @@ use std::error::Error;
 
 pub mod backend_error;
 pub mod game_api;
+pub mod v2;
 
 mod cache_slots;
 mod game_engine;
