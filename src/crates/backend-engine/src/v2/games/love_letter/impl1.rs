@@ -1,8 +1,6 @@
 use crate::v2::games::love_letter::{LoveLetterInstanceManager, LoveLetterEvent, PlayCardSource};
 use crate::v2::games::love_letter::types::{GameData, Card, StagedPlay, GameInstanceState, RoundData};
 use crate::v2::framework::ClientOut;
-use futures_util::sink::SinkExt;
-use futures_util::io::AsyncReadExt;
 
 const MAX_PLAYERS: usize = 4;
 const MIN_PLAYERS: usize = 2;
