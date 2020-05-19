@@ -8,8 +8,8 @@
 
 * 5 different colors (similar to "suits" in playing cards)
 * 12 cards per color:
-  * One of 2-10
-  * Three Wager cards
+    * One of 2-10
+    * Three Wager cards
 
 # Preparation
 
@@ -56,10 +56,10 @@ Score is determined in the following way. **For each column**:
 1. If you have played any cards, start with `-20` and contine counting your score.
 1. Add the `sum` of all non-wager cards and add it to your `-20`. Note: a column *can* earn you negative points.
 1. Apply the following multiplier based on the number of wager cards you played:
-  * 0 wagers => `1x`
-  * 1 wager  => `2x`
-  * 2 wagers => `3x`
-  * 3 wagers => `4x`
+    * 0 wagers => `1x`
+    * 1 wager  => `2x`
+    * 2 wagers => `3x`
+    * 3 wagers => `4x`
 1. If you've played **eight or more cards**, add a bonus of 20 points (not multiplied by wager multiplier) to your score. This is your final score for the color.
 
 ### Scoring Example
