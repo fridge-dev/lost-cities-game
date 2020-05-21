@@ -3,7 +3,7 @@ mod impl1;
 mod impl2;
 mod impl2b;
 
-use crate::v2::framework::{ClientOut, Holder, Players, PlayersMut};
+use crate::v2::framework::{ClientOut, Holder, Players};
 use crate::v2::games::love_letter::types::{GameData, Card, GameInstanceState};
 use crate::v2::games::love_letter::impl2::LoveLetterStateMachine;
 use std::collections::HashMap;
@@ -37,7 +37,7 @@ pub struct LoveLetterInstanceManager {
 impl LoveLetterInstanceManager {
     pub fn new() -> Self {
         // TODO Phase::Setup refactoring
-        let players = PlayersMut::new().into_immut();
+        let players = Players::new();
 
         LoveLetterInstanceManager {
             players: HashMap::new(),

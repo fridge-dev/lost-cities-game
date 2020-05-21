@@ -3,38 +3,28 @@ pub mod shuffler;
 
 use std::collections::HashMap;
 
-pub struct PlayersMut {
-    out_by_player_id: HashMap<String, ClientOut>,
-}
-
-impl PlayersMut {
-    pub fn new() -> Self {
-        PlayersMut {
-            out_by_player_id: HashMap::new(),
-        }
-    }
-
-    pub fn add(&mut self, player_id: String, client_out: ClientOut) -> Result<(), ()> {
-        // TODO enforce size
-        self.out_by_player_id.insert(player_id, client_out);
-        Ok(())
-    }
-
-    pub fn into_immut(self) -> Players {
-        Players {
-            out_by_player_id: self.out_by_player_id,
-        }
-    }
-}
-
 pub struct Players {
     out_by_player_id: HashMap<String, ClientOut>,
 }
 
 impl Players {
 
+    pub fn new() -> Self {
+        Players {
+            out_by_player_id: HashMap::new(),
+        }
+    }
+
+    pub fn add(&mut self, player_id: String, client_out: ClientOut) {
+        self.out_by_player_id.insert(player_id, client_out);
+    }
+
     pub fn contains(&self, player_id: &String) -> bool {
         self.out_by_player_id.contains_key(player_id)
+    }
+
+    pub fn count(&self) -> usize {
+        self.out_by_player_id.len()
     }
 
     pub fn player_ids(&self) -> Vec<String> {
@@ -43,7 +33,6 @@ impl Players {
             .collect()
     }
 
-    /// Return Err when player doesn't exist.
     pub fn send_msg<M: Into<prost::Message>>(&self, player_id: &String, message: M) {
         match self.out_by_player_id.get(player_id) {
             None => println!("ERROR: Cannot send_msg. Player '{}' not found.", player_id),

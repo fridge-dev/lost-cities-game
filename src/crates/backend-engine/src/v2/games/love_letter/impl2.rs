@@ -33,15 +33,21 @@ impl LoveLetterStateMachine {
     /// This will be a PITA to add Result<> to. Unless Err means game is in corrupt state
     /// and we drop the game instance.
     pub fn transition_state2(
-        &self,
+        &mut self,
         from_state: GameInstanceState,
         event: LoveLetterEvent,
     ) -> GameInstanceState {
         match event {
             // I will refactor these to be in Phase::Setup and game-specific below will be Phase::Game
-            LoveLetterEvent::Join(_, _) => from_state,
-            LoveLetterEvent::StartGame => from_state,
-            LoveLetterEvent::GetGameState(_) => from_state,
+            LoveLetterEvent::Join(player_id, client_out) => {
+                self.join(player_id, client_out, &from_state);
+                from_state
+            },
+            LoveLetterEvent::GetGameState(player_id) => {
+                self.get_game_state(player_id);
+                from_state
+            },
+            LoveLetterEvent::StartGame => self.start_game(from_state),
 
             // Phase::Game
             LoveLetterEvent::PlayCardStaged(player_id, card_source) => self.play_card_staged(from_state, player_id, card_source),
@@ -49,6 +55,49 @@ impl LoveLetterStateMachine {
             LoveLetterEvent::SelectTargetCard(client_player_id, target_card) => self.select_target_card(from_state, client_player_id, target_card),
             LoveLetterEvent::PlayCardCommit(player_id) => self.play_card_commit(from_state, player_id),
         }
+    }
+
+    fn join(&mut self, player_id: String, client_out: ClientOut, state: &GameInstanceState) {
+        // Reconnect
+        if self.players.contains(&player_id) {
+            self.players.add(player_id, client_out);
+            return;
+        }
+
+        // Game in progress
+        if state != &GameInstanceState::WaitingForStart {
+            client_out.send_err("Can't join, game has started");
+            return;
+        }
+
+        // Check max players
+        if self.players.count() >= MAX_PLAYERS {
+            client_out.send_err("Can't join, game has max players");
+            return;
+        }
+
+        self.players.add(player_id, client_out);
+    }
+
+    fn get_game_state(&self, player_id: String) {
+        self.players.send_msg(&player_id, format!("TODO msg"));
+    }
+
+    fn start_game(&mut self, from_state: GameInstanceState) -> GameInstanceState {
+        // Game already started
+        if GameInstanceState::WaitingForStart != from_state {
+            // TODO notify caller of err?
+            // TODO idempotency?
+            return from_state;
+        }
+
+        // Not enough players
+        if self.players.count() < MIN_PLAYERS {
+            // TODO notify caller of err?
+            return from_state;
+        }
+
+        GameInstanceState::InProgress(GameData::new(self.players.player_ids()))
     }
 
     fn play_card_staged(&self, from_state: GameInstanceState, player_id: String, card_source: PlayCardSource) -> GameInstanceState {
@@ -61,7 +110,6 @@ impl LoveLetterStateMachine {
             GameInstanceState::WaitingForStart => {
                 // TODO idempotency?
                 self.players.send_err(&player_id, "Can't play before game has started");
-                self.state2.put(state);
 
                 // No state change
                 GameInstanceState::WaitingForStart
